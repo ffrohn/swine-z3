@@ -1,0 +1,3 @@
+#!/bin/bash
+trap "" SIGRTMIN
+./swine --semantics total --solver cvc5 --no-modulo $1 2> /dev/null
