@@ -59,8 +59,8 @@ z3::expr Rewriter::rewrite(const z3::expr &t) {
                 res = t.decl()(new_children);
             }
         } else if (t.decl().decl_kind() == Z3_OP_POWER) {
-            const auto fst {rewrite(t.arg(0))};
-            const auto snd {rewrite(t.arg(1))};
+            const auto fst {rewrite(children[0])};
+            const auto snd {rewrite(children[1])};
             if (util.is_abstract_exp(fst) && util.is_value(snd) && util.value(snd) >= 0) {
                 const auto base {fst.arg(0)};
                 const auto exp {fst.arg(1)};

@@ -58,24 +58,22 @@ Swine::~Swine(){
 }
 
 void Swine::add_lemma(const z3::expr &t, const LemmaKind kind) {
-    static Preprocessor preproc(*util);
     if (config.log) {
         std::cout << kind << " lemma:" << std::endl;
         std::cout << t << std::endl;
     }
-    const auto pp {preproc.preprocess(t)};
     if (config.validate_unsat || config.get_lemmas) {
-        frames.back().lemma_kinds.emplace(pp.id(), kind);
-        frames.back().lemmas.emplace(pp.id(), pp);
+        frames.back().lemma_kinds.emplace(t.id(), kind);
+        frames.back().lemmas.emplace(t.id(), t);
     }
     if (config.get_lemmas) {
         static unsigned int count {0};
         const auto assumption {ctx.bool_const(("assumption_" + std::to_string(count)).c_str())};
         ++count;
-        frames.back().assumptions.emplace_back(assumption, pp);
-        solver.add(assumption == pp);
+        frames.back().assumptions.emplace_back(assumption, t);
+        solver.add(assumption == t);
     } else {
-        solver.add(pp);
+        solver.add(t);
     }
     switch (kind) {
     case LemmaKind::Interpolation: ++stats.interpolation_lemmas;
@@ -118,9 +116,7 @@ void Swine::symmetry_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas)
         }
     }
     for (const auto &l: sym_lemmas) {
-        if (!get_value(l).is_true()) {
-            lemmas.emplace_back(l, LemmaKind::Symmetry);
-        }
+        lemmas.emplace_back(l, LemmaKind::Symmetry);
     }
 }
 
@@ -204,10 +200,7 @@ void Swine::bounding_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas)
                 const auto ee {evaluate_exponential(e)};
                 if (ee.exp_expression_val != ee.expected_val && ee.base_val >= 0) {
                     for (const auto &l: f.bounding_lemmas.at(e.id())) {
-                        if (!get_value(l).is_true()) {
-                            lemmas.emplace_back(l, LemmaKind::Bounding);
-                            break;
-                        }
+                        lemmas.emplace_back(l, LemmaKind::Bounding);
                     }
                 }
             }
@@ -265,14 +258,19 @@ Swine::Interpolant Swine::interpolate(const z3::expr &t, const unsigned pos, con
         children.push_back(c);
     }
     auto x {children[pos]};
-    auto c {util->term(x1)};
-    children.set(pos, c);
+    auto t1 {util->term(x1)};
+    children.set(pos, t1);
     const auto at_x1 {t.decl()(children)};
-    c = util->term(x2);
-    children.set(pos, c);
-    const auto at_x2 {t.decl()(children)};
     res.factor = abs(x2 - x1);
-    res.t = util->term(res.factor) * at_x1 + (at_x2 - at_x1) * (x - util->term(x1));
+    if (res.factor == 0) {
+        res.factor = 1;
+        res.t = at_x1;
+    } else {
+        auto t2 = util->term(x2);
+        children.set(pos, t2);
+        const auto at_x2 {t.decl()(children)};
+        res.t = util->term(res.factor) * at_x1 + (at_x2 - at_x1) * (x - util->term(x1));
+    }
     return res;
 }
 
@@ -284,14 +282,13 @@ z3::expr Swine::interpolation_lemma(const z3::expr &t, const bool upper, const s
     const auto base {t.arg(0)};
     const auto exp {t.arg(1)};
     // const auto op = upper ? Le : Ge;
-    const auto gey {util->term(y1) <= exp && exp <= util->term(y2)};
-    auto ley {exp >= util->term(0)};
-    if (y2 > y1 + 1) {
-        ley = ley && (util->term(y1) >= exp || exp >= util->term(y2));
-    }
+    // y1 <= exponent <= y2
+    const auto exponent_in_bounds {util->term(y1) <= exp && exp <= util->term(y2)};
+    // exponent > 0
+    const auto exponent_positive {exp > util->term(0)};
     if (util->is_value(base)) {
         const auto i {interpolate(t, 1, y1, y2)};
-        const auto premise = upper ? gey : ley;
+        const auto premise = upper ? exponent_in_bounds : exponent_positive;
         const auto conclusion_lhs {t * util->term(i.factor)};
         const auto conclusion = upper ? conclusion_lhs <= i.t : conclusion_lhs >= i.t;
         return z3::implies(premise, conclusion);
@@ -299,22 +296,29 @@ z3::expr Swine::interpolation_lemma(const z3::expr &t, const bool upper, const s
         const auto at_y1 {util->make_exp(base, util->term(y1))};
         const auto at_y2 {util->make_exp(base, util->term(y2))};
         const auto i1 {interpolate(at_y1, 0, x1, x2)};
-        const auto i2 {interpolate(at_y1, 0, x1, x2)};
+        const auto i2 {interpolate(at_y2, 0, x1, x2)};
         z3::expr premise{ctx};
         if (upper) {
-            const auto gex {util->term(x1) <= base && base <= util->term(x2)};
-            premise = gex && gey;
+            // x1 <= base <= x2
+            const auto base_in_bounds {util->term(x1) <= base && base <= util->term(x2)};
+            premise = base_in_bounds && exponent_in_bounds;
         } else {
-            auto lex {base > ctx.int_val(0)};
-            if (x2 > x1 + 1) {
-                lex = lex && (util->term(x1) >= base || base >= util->term(x2));
-            }
-            premise = lex && ley;
+            // exponent >= y1
+            const auto exponent_above_threshold {exp >= util->term(y1)};
+            // base > 0
+            const auto base_positive {base > util->term(0)};
+            premise = base_positive && exponent_above_threshold;
         }
-        const auto y_diff {util->term(y2 - y1)};
-        const auto conclusion_lhs {t * util->term(i1.factor) * y_diff};
-        const auto conclusion_rhs {i1.t * y_diff + (i2.t - i1.t) * (exp - util->term(y1))};
-        const auto conclusion = upper ? conclusion_lhs <= conclusion_rhs : conclusion_lhs >= conclusion_rhs;
+        z3::expr conclusion {ctx};
+        if (y2 == y1) {
+            const auto lhs {t * util->term(i1.factor)};
+            conclusion = upper ? lhs <= i1.t : lhs >= i1.t;
+        } else {
+            const auto y_diff {util->term(y2 - y1)};
+            const auto lhs {t * util->term(i1.factor) * y_diff};
+            const auto rhs {i1.t * y_diff + (i2.t - i1.t) * (exp - util->term(y1))};
+            conclusion = upper ? lhs <= rhs : lhs >= rhs;
+        }
         return z3::implies(premise, conclusion);
     }
 }
@@ -382,7 +386,7 @@ std::optional<z3::expr> Swine::monotonicity_lemma(const EvaluatedExponential &e1
     } else {
         premise = strict_exp_premise;
     }
-    return z3::implies(ctx.int_val(0) < smaller.base && ctx.int_val(0) <= smaller.exponent && premise, smaller.exp_expression < greater.exp_expression);
+    return z3::implies(ctx.int_val(1) < smaller.base && ctx.int_val(0) = smaller.exponent && premise, smaller.exp_expression < greater.exp_expression);
 }
 
 void Swine::monotonicity_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas) {
@@ -396,7 +400,7 @@ void Swine::monotonicity_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lem
             for (const auto &e: g->maybe_non_neg_base()) {
                 const auto base {e.arg(0)};
                 const auto exp {e.arg(1)};
-                if (util->value(get_value(base)) > 0 && util->value(get_value(exp)) >= 0) {
+                if (util->value(get_value(base)) > 1 && util->value(get_value(exp)) > 0) {
                     exps.push_back(e);
                 }
             }
@@ -427,6 +431,18 @@ void Swine::mod_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas) {
             }
         }
     }
+}
+
+std::vector<std::pair<z3::expr, LemmaKind>> Swine::preprocess_lemmas(const std::vector<std::pair<z3::expr, LemmaKind>> &lemmas) {
+    static Preprocessor preproc(*util);
+    std::vector<std::pair<z3::expr, LemmaKind>> res;
+    for (const auto &[l,k]: lemmas) {
+        const auto p {preproc.preprocess(l)};
+        if (get_value(p).is_false()) {
+            res.emplace_back(p, k);
+        }
+    }
+    return res;
 }
 
 z3::check_result Swine::check(z3::expr_vector assumptions) {
@@ -512,20 +528,23 @@ z3::check_result Swine::check(z3::expr_vector assumptions) {
                     }
                     break;
                 }
-                if (lemmas.empty()) {
-                    symmetry_lemmas(lemmas);
-                }
+                symmetry_lemmas(lemmas);
+                lemmas = preprocess_lemmas(lemmas);
                 if (lemmas.empty()) {
                     bounding_lemmas(lemmas);
+                    lemmas = preprocess_lemmas(lemmas);
                 }
                 if (lemmas.empty()) {
                     monotonicity_lemmas(lemmas);
+                    lemmas = preprocess_lemmas(lemmas);
                 }
                 if (lemmas.empty()) {
                     mod_lemmas(lemmas);
+                    lemmas = preprocess_lemmas(lemmas);
                 }
                 if (lemmas.empty()) {
                     interpolation_lemmas(lemmas);
+                    lemmas = preprocess_lemmas(lemmas);
                 }
                 if (lemmas.empty()) {
                     if (config.is_active(LemmaKind::Interpolation)) {

@@ -96,6 +96,7 @@ private:
     void verify() const;
     void brute_force();
     void add_lemma(const z3::expr &lemma, const LemmaKind kind);
+    std::vector<std::pair<z3::expr, LemmaKind>> preprocess_lemmas(const std::vector<std::pair<z3::expr, LemmaKind>> &lemmas);
     z3::expr get_value(const z3::expr &exp) const;
 
 public:
