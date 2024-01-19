@@ -24,7 +24,7 @@ z3::expr Rewriter::rewrite(const z3::expr &t) {
             } else if (exp.id() == one.id() || exp.id() == mone.id()) {
                 res = base;
             } else if (util.is_value(exp)) {
-                res = z3::pw(base, exp);
+                res = rewrite(z3::pw(base, exp));
             } else if (util.is_abstract_exp(base)) {
                 const auto inner_base {base.arg(0)};
                 const auto inner_exp {base.arg(1)};
@@ -61,10 +61,18 @@ z3::expr Rewriter::rewrite(const z3::expr &t) {
         } else if (t.decl().decl_kind() == Z3_OP_POWER) {
             const auto fst {rewrite(children[0])};
             const auto snd {rewrite(children[1])};
-            if (util.is_abstract_exp(fst) && util.is_value(snd) && util.value(snd) >= 0) {
-                const auto base {fst.arg(0)};
-                const auto exp {fst.arg(1)};
-                res = util.make_exp(base, exp * snd);
+            if (util.is_value(snd)) {
+                const auto val {util.value(snd)};
+                if (util.is_abstract_exp(fst) && val >= 0) {
+                    const auto base {fst.arg(0)};
+                    const auto exp {fst.arg(1)};
+                    res = util.make_exp(base, exp * snd);
+                } else if (val <= 10) {
+                    res = util.term(1);
+                    for (int i = 0; i < val; ++i) {
+                        res = *res * fst;
+                    }
+                }
             }
         }
         if (!res) {

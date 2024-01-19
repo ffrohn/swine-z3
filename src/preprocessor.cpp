@@ -6,7 +6,7 @@ Preprocessor::Preprocessor(Util &util): util(util), rewriter(util), constant_pro
 
 z3::expr Preprocessor::preprocess(const z3::expr &term) {
     const auto log = [&](const z3::expr &term, const PreprocKind kind, const std::function<z3::expr(const z3::expr&)> &f){
-        static bool done {false};
+        bool done {false};
         const z3::expr res {f(term)};
         if (util.config.log && res.id() != term.id()) {
             if (!done) {
@@ -59,6 +59,8 @@ z3::expr Preprocessor::preprocess(const z3::expr &term) {
             res = rterm;
         }
     }
+    res = res.simplify();
+    if (util.config.log && term.id() != res.id()) std::cout << "preprocessing finished" << std::endl;
     return res;
 }
 

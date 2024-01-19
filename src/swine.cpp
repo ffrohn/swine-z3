@@ -386,7 +386,8 @@ std::optional<z3::expr> Swine::monotonicity_lemma(const EvaluatedExponential &e1
     } else {
         premise = strict_exp_premise;
     }
-    return z3::implies(ctx.int_val(1) < smaller.base && ctx.int_val(0) = smaller.exponent && premise, smaller.exp_expression < greater.exp_expression);
+    premise = ctx.int_val(1) < smaller.base && ctx.int_val(0) == smaller.exponent && premise;
+    return z3::implies(premise, smaller.exp_expression < greater.exp_expression);
 }
 
 void Swine::monotonicity_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas) {
