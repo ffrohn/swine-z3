@@ -1,3 +1,0 @@
-#!/bin/bash
-trap "" SIGRTMIN
-./swine --semantics total --solver z3 --no-rewriting --no-bounding --no-symmetry --no-interpolation --no-monotonicity --no-modulo $1 2> /dev/null
