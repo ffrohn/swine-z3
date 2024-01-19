@@ -5,7 +5,7 @@
 # /LoAT/. Reconfiguration is necessary to get the information whether the
 # working tree is clean or not.
 
-mkdir -p /swine-z3/build-debug
-cd /swine-z3/build-debug
-cmake -DCMAKE_BUILD_TYPE=Debug ../
+mkdir -p /swine-z3/build
+cd /swine-z3/build
+cmake -DCMAKE_BUILD_TYPE=Release ../
 make -j
