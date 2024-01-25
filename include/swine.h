@@ -2,11 +2,14 @@
 
 #include <z3++.h>
 #include <boost/multiprecision/cpp_int.hpp>
-
-#include "config.h"
-#include "util.h"
+#include <unordered_set>
+#include <optional>
 
 namespace swine {
+
+class Util;
+class Config;
+enum class LemmaKind;
 
 std::ostream& operator<<(std::ostream &s, const LemmaKind kind);
 
@@ -71,7 +74,7 @@ private:
     };
 
     Statistics stats;
-    const Config config;
+    const std::unique_ptr<const Config> config;
     z3::context &ctx;
     z3::solver solver;
     std::unique_ptr<Util> util;

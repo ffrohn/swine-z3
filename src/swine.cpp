@@ -42,10 +42,10 @@ std::ostream& operator<<(std::ostream &s, const Swine::Statistics &stats) {
 Swine::Frame::Frame(z3::context &ctx): exps(ctx) {}
 
 Swine::Swine(const Config &config, z3::context &ctx):
-    config(config),
+    config(std::make_unique<Config>(config)),
     ctx(ctx),
     solver(ctx),
-    util(std::make_unique<Util>(ctx, config)) {
+    util(std::make_unique<Util>(ctx, *this->config)) {
     solver.set("model", true);
     if (config.get_lemmas) {
         solver.set("unsat_core", true);
@@ -58,15 +58,15 @@ Swine::~Swine(){
 }
 
 void Swine::add_lemma(const z3::expr &t, const LemmaKind kind) {
-    if (config.log) {
+    if (config->log) {
         std::cout << kind << " lemma:" << std::endl;
         std::cout << t << std::endl;
     }
-    if (config.validate_unsat || config.get_lemmas) {
+    if (config->validate_unsat || config->get_lemmas) {
         frames.back().lemma_kinds.emplace(t.id(), kind);
         frames.back().lemmas.emplace(t.id(), t);
     }
-    if (config.get_lemmas) {
+    if (config->get_lemmas) {
         static unsigned int count {0};
         const auto assumption {ctx.bool_const(("assumption_" + std::to_string(count)).c_str())};
         ++count;
@@ -95,7 +95,7 @@ z3::expr Swine::get_value(const z3::expr &exp) const {
 }
 
 void Swine::symmetry_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas) {
-    if (!config.is_active(LemmaKind::Symmetry)) {
+    if (!config->is_active(LemmaKind::Symmetry)) {
         return;
     }
     z3::expr_vector sym_lemmas{ctx};
@@ -121,7 +121,7 @@ void Swine::symmetry_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas)
 }
 
 void Swine::base_symmetry_lemmas(const z3::expr &e, z3::expr_vector &lemmas) {
-    if (!config.is_active(LemmaKind::Symmetry)) {
+    if (!config->is_active(LemmaKind::Symmetry)) {
         return;
     }
     const auto base {e.arg(0)};
@@ -137,7 +137,7 @@ void Swine::base_symmetry_lemmas(const z3::expr &e, z3::expr_vector &lemmas) {
 }
 
 void Swine::exp_symmetry_lemmas(const z3::expr &e, z3::expr_vector &lemmas) {
-    if (!config.is_active(LemmaKind::Symmetry)) {
+    if (!config->is_active(LemmaKind::Symmetry)) {
         return;
     }
     const auto base {e.arg(0)};
@@ -147,7 +147,7 @@ void Swine::exp_symmetry_lemmas(const z3::expr &e, z3::expr_vector &lemmas) {
 }
 
 void Swine::compute_bounding_lemmas(const ExpGroup &g) {
-    if (!config.is_active(LemmaKind::Bounding)) {
+    if (!config->is_active(LemmaKind::Bounding)) {
         return;
     }
     for (const auto &e: g.maybe_non_neg_base()) {
@@ -186,7 +186,7 @@ void Swine::compute_bounding_lemmas(const ExpGroup &g) {
 }
 
 void Swine::bounding_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas) {
-    if (!config.is_active(LemmaKind::Bounding)) {
+    if (!config->is_active(LemmaKind::Bounding)) {
         return;
     }
     std::unordered_set<unsigned> seen;
@@ -213,12 +213,12 @@ void Swine::add(const z3::expr &t) {
     static ExpFinder exp_finder(*util);
     try {
         ++stats.num_assertions;
-        if (config.log) {
+        if (config->log) {
             std::cout << "assertion:" << std::endl;
             std::cout << t << std::endl;
         }
         const auto preprocessed {preproc.preprocess(t)};
-        if (config.validate_sat || config.validate_unsat || config.get_lemmas) {
+        if (config->validate_sat || config->validate_unsat || config->get_lemmas) {
             frames.back().preprocessed_assertions.emplace_back(preprocessed, t);
         }
         solver.add(preprocessed);
@@ -348,7 +348,7 @@ void Swine::interpolation_lemma(const EvaluatedExponential &e, std::vector<std::
 }
 
 void Swine::interpolation_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas) {
-    if (!config.is_active(LemmaKind::Interpolation)) {
+    if (!config->is_active(LemmaKind::Interpolation)) {
         return;
     }
     for (const auto &f: frames) {
@@ -391,7 +391,7 @@ std::optional<z3::expr> Swine::monotonicity_lemma(const EvaluatedExponential &e1
 }
 
 void Swine::monotonicity_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas) {
-    if (!config.is_active(LemmaKind::Monotonicity)) {
+    if (!config->is_active(LemmaKind::Monotonicity)) {
         return;
     }
     // search for pairs exp(b,e1), exp(b,e2) whose models violate monotonicity of exp
@@ -420,7 +420,7 @@ void Swine::monotonicity_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lem
 }
 
 void Swine::mod_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas) {
-    if (!config.is_active(LemmaKind::Modulo)) {
+    if (!config->is_active(LemmaKind::Modulo)) {
         return;
     }
     for (auto f: frames) {
@@ -456,7 +456,7 @@ z3::check_result Swine::check(z3::expr_vector assumptions) {
     while (true) {
         try {
             ++stats.iterations;
-            if (config.get_lemmas) {
+            if (config->get_lemmas) {
                 for (const auto &f: frames) {
                     for (const auto &[a,_]: f.assumptions) {
                         assumptions.push_back(a);
@@ -469,7 +469,7 @@ z3::check_result Swine::check(z3::expr_vector assumptions) {
                 res = solver.check();
             }
             if (res == z3::unsat) {
-                if (config.get_lemmas) {
+                if (config->get_lemmas) {
                     const auto core {solver.unsat_core()};
                     std::unordered_set<unsigned> ids;
                     for (const auto &c: core) {
@@ -497,7 +497,7 @@ z3::check_result Swine::check(z3::expr_vector assumptions) {
                         break;
                     }
                 }
-                if (config.validate_unsat) {
+                if (config->validate_unsat) {
                     brute_force();
                 }
                 break;
@@ -505,7 +505,7 @@ z3::check_result Swine::check(z3::expr_vector assumptions) {
                 break;
             } else if (res == z3::sat) {
                 bool sat {true};
-                if (config.log) {
+                if (config->log) {
                     std::cout << "candidate model:" << std::endl;
                     std::cout << solver.get_model() << std::endl;
                 }
@@ -524,7 +524,7 @@ z3::check_result Swine::check(z3::expr_vector assumptions) {
                     }
                 }
                 if (sat) {
-                    if (config.validate_sat) {
+                    if (config->validate_sat) {
                         verify();
                     }
                     break;
@@ -548,7 +548,7 @@ z3::check_result Swine::check(z3::expr_vector assumptions) {
                     lemmas = preprocess_lemmas(lemmas);
                 }
                 if (lemmas.empty()) {
-                    if (config.is_active(LemmaKind::Interpolation)) {
+                    if (config->is_active(LemmaKind::Interpolation)) {
                         throw std::logic_error("refinement failed, but interpolation is enabled");
                     } else {
                         return z3::unknown;
@@ -564,7 +564,7 @@ z3::check_result Swine::check(z3::expr_vector assumptions) {
             solver.add(e.get_t() <= util->term(std::numeric_limits<long long>::max()));
         }
     }
-    if (config.statistics) {
+    if (config->statistics) {
         std::cout << stats << std::endl;
     }
     return res;
@@ -622,7 +622,7 @@ void Swine::brute_force() {
     BruteForce bf(*util, assertions, exps);
     if (bf.check_sat()) {
         std::cout << "sat via brute force" << std::endl;
-        if (config.log) {
+        if (config->log) {
             std::cout << "candidate model:" << std::endl;
             std::cout << solver.get_model() << std::endl;
         }
