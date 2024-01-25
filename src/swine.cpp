@@ -39,6 +39,10 @@ std::ostream& operator<<(std::ostream &s, const Swine::Statistics &stats) {
     return s;
 }
 
+std::ostream& operator<<(std::ostream &s, const Swine &swine) {
+    return s << swine.get_solver();
+}
+
 Swine::Frame::Frame(z3::context &ctx): exps(ctx) {}
 
 Swine::Swine(const Config &config, z3::context &ctx):
@@ -644,6 +648,10 @@ z3::context& Swine::get_ctx() {
 
 z3::func_decl& Swine::get_exp() {
     return *util->exp;
+}
+
+const z3::solver& Swine::get_solver() const {
+    return solver;
 }
 
 z3::solver& Swine::get_solver() {

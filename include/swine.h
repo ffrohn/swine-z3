@@ -10,8 +10,6 @@
 namespace swine {
 
 class Util;
-class Config;
-enum class LemmaKind;
 
 std::ostream& operator<<(std::ostream &s, const LemmaKind kind);
 
@@ -83,6 +81,8 @@ private:
     std::vector<Frame> frames;
     std::unordered_map<unsigned, std::vector<std::pair<boost::multiprecision::cpp_int, long long>>> interpolation_points;
 
+    friend std::ostream& operator<<(std::ostream &s, const Swine &swine);
+
     z3::check_result check(z3::expr_vector assumptions);
     void base_symmetry_lemmas(const z3::expr &e, z3::expr_vector &lemmas);
     void exp_symmetry_lemmas(const z3::expr &e, z3::expr_vector &lemmas);
@@ -117,9 +117,12 @@ public:
     z3::context& get_ctx();
     z3::func_decl& get_exp();
     z3::solver& get_solver();
+    const z3::solver& get_solver() const;
 
 };
 
 std::ostream& operator<<(std::ostream &s, const Swine::Statistics &stats);
+
+std::ostream& operator<<(std::ostream &s, const Swine &swine);
 
 }
