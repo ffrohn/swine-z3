@@ -116,6 +116,7 @@ public:
     void reset();
     z3::context& get_ctx();
     z3::func_decl& get_exp();
+    z3::solver& get_solver();
 
 };
 

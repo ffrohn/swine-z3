@@ -646,4 +646,8 @@ z3::func_decl& Swine::get_exp() {
     return *util->exp;
 }
 
+z3::solver& Swine::get_solver() {
+    return solver;
+}
+
 }
