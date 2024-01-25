@@ -113,7 +113,7 @@ public:
     z3::model get_model();
     void reset();
     z3::context& get_ctx();
-    Util& get_util();
+    z3::func_decl& get_exp();
 
 };
 

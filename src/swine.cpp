@@ -642,8 +642,8 @@ z3::context& Swine::get_ctx() {
     return ctx;
 }
 
-Util& Swine::get_util() {
-    return *util;
+z3::func_decl& Swine::get_exp() {
+    return *util->exp;
 }
 
 }

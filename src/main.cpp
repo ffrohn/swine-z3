@@ -1,6 +1,8 @@
 #include "swine.h"
-#include "util.h"
 #include "version.h"
+#include "lemma_kind.h"
+#include "preproc_kind.h"
+#include "config.h"
 
 #include <boost/algorithm/string.hpp>
 #include <z3++.h>
@@ -123,8 +125,8 @@ int main(int argc, char *argv[]) {
     }
     z3::context ctx;
     Swine swine(config, ctx);
-    Z3_func_decl const decls[]{*swine.get_util().exp};
-    Z3_symbol const decl_names[]{swine.get_util().exp->name()};
+    Z3_func_decl const decls[]{swine.get_exp()};
+    Z3_symbol const decl_names[]{swine.get_exp().name()};
     Z3_ast_vector v {Z3_parse_smtlib2_file(ctx, input->c_str(), 0, 0, 0, 1, decl_names, decls)};
     ctx.check_error();
     Z3_ast_vector_inc_ref(ctx, v);
