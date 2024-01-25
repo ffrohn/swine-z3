@@ -59,9 +59,7 @@ z3::expr Preprocessor::preprocess(const z3::expr &term) {
             res = rterm;
         }
     }
-    res = res.simplify();
-    if (util.config.log && term.id() != res.id()) std::cout << "preprocessing finished" << std::endl;
-    return res;
+    return res.simplify();
 }
 
 }
