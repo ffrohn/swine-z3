@@ -1,5 +1,7 @@
 #pragma once
 
+#include "config.h"
+
 #include <z3++.h>
 #include <boost/multiprecision/cpp_int.hpp>
 #include <unordered_set>
@@ -74,7 +76,7 @@ private:
     };
 
     Statistics stats;
-    const std::unique_ptr<const Config> config;
+    const Config config;
     z3::context &ctx;
     z3::solver solver;
     std::unique_ptr<Util> util;
