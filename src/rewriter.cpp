@@ -5,9 +5,9 @@ namespace swine {
 Rewriter::Rewriter(Util &util): util(util) {}
 
 z3::expr Rewriter::rewrite(const z3::expr &t) {
-    static const auto zero {util.ctx.int_val(0)};
-    static const auto one {util.ctx.int_val(1)};
-    static const auto mone {util.ctx.int_val(-1)};
+    const auto zero {util.ctx.int_val(0)};
+    const auto one {util.ctx.int_val(1)};
+    const auto mone {util.ctx.int_val(-1)};
     std::optional<z3::expr> res;
     if (t.num_args() == 0) {
         return t;

@@ -49,7 +49,9 @@ Swine::Swine(const Config &config, z3::context &ctx):
     config(config),
     ctx(ctx),
     solver(ctx),
-    util(std::make_unique<Util>(ctx, this->config)) {
+    util(std::make_unique<Util>(ctx, this->config)),
+    preproc(std::make_unique<Preprocessor>(*util)),
+    exp_finder(std::make_unique<ExpFinder>(*util)) {
     solver.set("model", true);
     if (config.get_lemmas) {
         solver.set("unsat_core", true);
@@ -213,20 +215,18 @@ void Swine::bounding_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas)
 }
 
 void Swine::add(const z3::expr &t) {
-    static Preprocessor preproc(*util);
-    static ExpFinder exp_finder(*util);
     try {
         ++stats.num_assertions;
         if (config.log) {
             std::cout << "assertion:" << std::endl;
             std::cout << t << std::endl;
         }
-        const auto preprocessed {preproc.preprocess(t)};
+        const auto preprocessed {preproc->preprocess(t)};
         if (config.validate_sat || config.validate_unsat || config.get_lemmas) {
             frames.back().preprocessed_assertions.emplace_back(preprocessed, t);
         }
         solver.add(preprocessed);
-        for (const auto &g: exp_finder.find_exps(preprocessed)) {
+        for (const auto &g: exp_finder->find_exps(preprocessed)) {
             if (frames.back().exp_ids.emplace(g.orig().id()).second) {
                 frames.back().exps.push_back(g.orig());
                 frames.back().exp_groups.emplace_back(std::make_shared<ExpGroup>(g));
@@ -439,10 +439,9 @@ void Swine::mod_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas) {
 }
 
 std::vector<std::pair<z3::expr, LemmaKind>> Swine::preprocess_lemmas(const std::vector<std::pair<z3::expr, LemmaKind>> &lemmas) {
-    static Preprocessor preproc(*util);
     std::vector<std::pair<z3::expr, LemmaKind>> res;
     for (const auto &[l,k]: lemmas) {
-        const auto p {preproc.preprocess(l)};
+        const auto p {preproc->preprocess(l)};
         if (get_value(p).is_false()) {
             res.emplace_back(p, k);
         }

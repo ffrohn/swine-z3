@@ -14,6 +14,8 @@ class Util;
 std::ostream& operator<<(std::ostream &s, const LemmaKind kind);
 
 class ExpGroup;
+class Preprocessor;
+class ExpFinder;
 
 class Swine {
 
@@ -80,6 +82,8 @@ private:
     std::unique_ptr<Util> util;
     std::vector<Frame> frames;
     std::unordered_map<unsigned, std::vector<std::pair<boost::multiprecision::cpp_int, long long>>> interpolation_points;
+    std::unique_ptr<Preprocessor> preproc;
+    std::unique_ptr<ExpFinder> exp_finder;
 
     friend std::ostream& operator<<(std::ostream &s, const Swine &swine);
 

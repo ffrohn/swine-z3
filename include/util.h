@@ -25,7 +25,7 @@ class Util {
 
 public:
 
-    const Config config;
+    const Config &config;
     z3::context &ctx;
     std::unique_ptr<z3::func_decl> exp;
 

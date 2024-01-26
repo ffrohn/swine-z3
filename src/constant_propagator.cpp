@@ -5,8 +5,8 @@ namespace swine {
 ConstantPropagator::ConstantPropagator(Util &util): util(util) {}
 
 z3::expr ConstantPropagator::propagate(const z3::expr &expression) const {
-    static const auto zero {util.ctx.int_val(0)};
-    static const auto one {util.ctx.int_val(1)};
+    const auto zero {util.ctx.int_val(0)};
+    const auto one {util.ctx.int_val(1)};
     if (expression.num_args() == 0) {
         return expression;
     } else {

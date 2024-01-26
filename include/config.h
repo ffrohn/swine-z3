@@ -7,32 +7,29 @@
 
 namespace swine {
 
-struct Config {
+class Config {
+
+private:
+
+    std::unordered_set<LemmaKind> active_lemma_kinds {lemma_kind::values};
+    std::unordered_set<PreprocKind> active_preprocessings{preproc_kind::values};
+
+public:
 
     bool validate_sat {false};
-    std::optional<unsigned int> validate_unsat;
+    std::optional<unsigned int> validate_unsat {};
     bool log {false};
     bool statistics {false};
     bool get_lemmas {false};
     bool debug {false};
-    std::unordered_set<LemmaKind> active_lemma_kinds {lemma_kind::values};
-    std::unordered_set<PreprocKind> active_preprocessings{preproc_kind::values};
 
-    void deactivate(const LemmaKind k) {
-        active_lemma_kinds.erase(k);
-    }
+    void deactivate(const LemmaKind k);
 
-    bool is_active(const LemmaKind k) const {
-        return active_lemma_kinds.contains(k);
-    }
+    bool is_active(const LemmaKind k) const;
 
-    void deactivate(const PreprocKind k) {
-        active_preprocessings.erase(k);
-    }
+    void deactivate(const PreprocKind k);
 
-    bool is_active(const PreprocKind k) const {
-        return active_preprocessings.contains(k);
-    }
+    bool is_active(const PreprocKind k) const;
 
 };
 
