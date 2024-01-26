@@ -30,8 +30,8 @@ private:
         std::unordered_map<unsigned, LemmaKind> lemma_kinds;
         std::unordered_map<unsigned, z3::expr> lemmas;
         std::unordered_map<unsigned, z3::expr_vector> bounding_lemmas;
-        bool has_overflow;
-        bool assert_failed;
+        bool has_overflow {false};
+        bool assert_failed {false};
 
         Frame(z3::context &ctx);
 
