@@ -658,4 +658,8 @@ z3::solver& Swine::get_solver() {
     return solver;
 }
 
+z3::model Swine::get_model() const {
+    return solver.get_model();
+}
+
 }

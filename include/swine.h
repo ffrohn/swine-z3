@@ -112,7 +112,7 @@ public:
     z3::check_result check();
     void push();
     void pop();
-    z3::model get_model();
+    z3::model get_model() const;
     void reset();
     z3::context& get_ctx();
     z3::func_decl& get_exp();
