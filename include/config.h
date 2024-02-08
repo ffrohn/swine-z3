@@ -22,6 +22,8 @@ public:
     bool statistics {false};
     bool get_lemmas {false};
     bool debug {false};
+    unsigned rlimit {0};
+    unsigned rlimit_z3 {0};
 
     void deactivate(const LemmaKind k);
 
