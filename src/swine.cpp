@@ -456,7 +456,7 @@ z3::check_result Swine::check(z3::expr_vector assumptions) {
             return z3::unknown;
         }
     }
-    z3::check_result res;
+    auto res {z3::unknown};
     while (config.rlimit == 0 || stats.iterations < config.rlimit) {
         try {
             ++stats.iterations;
