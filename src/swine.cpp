@@ -53,7 +53,6 @@ Swine::Swine(const Config &config, z3::context &ctx):
     preproc(std::make_unique<Preprocessor>(*util)),
     exp_finder(std::make_unique<ExpFinder>(*util)) {
     solver.set("model", true);
-    solver.set("rlimit", config.rlimit_z3);
     if (config.get_lemmas) {
         solver.set("unsat_core", true);
     }
@@ -457,8 +456,10 @@ z3::check_result Swine::check(z3::expr_vector assumptions) {
         }
     }
     auto res {z3::unknown};
-    while (config.rlimit == 0 || stats.iterations < config.rlimit) {
+    unsigned rconsumption {0};
+    while (config.rlimit == 0 || rconsumption < config.rlimit) {
         try {
+            ++rconsumption;
             ++stats.iterations;
             if (config.get_lemmas) {
                 for (const auto &f: frames) {

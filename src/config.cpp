@@ -18,4 +18,8 @@ bool Config::is_active(const PreprocKind k) const {
     return active_preprocessings.contains(k);
 }
 
+void Config::set_rlimit(unsigned rlimit) {
+    this->rlimit = rlimit;
+}
+
 }

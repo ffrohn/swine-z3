@@ -23,7 +23,6 @@ public:
     bool get_lemmas {false};
     bool debug {false};
     unsigned rlimit {0};
-    unsigned rlimit_z3 {0};
 
     void deactivate(const LemmaKind k);
 
@@ -32,6 +31,8 @@ public:
     void deactivate(const PreprocKind k);
 
     bool is_active(const PreprocKind k) const;
+
+    void set_rlimit(unsigned rlimit);
 
 };
 
