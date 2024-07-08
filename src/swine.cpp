@@ -252,7 +252,7 @@ Swine::EvaluatedExponential Swine::evaluate_exponential(const z3::expr &exp_expr
     res.exp_expression_val = util->value(get_value(res.exp_expression));
     res.base_val = util->value(get_value(res.base));
     res.exponent_val = Util::to_int(get_value(res.exponent));
-    res.expected_val = boost::multiprecision::pow(res.base_val, abs(res.exponent_val));
+    res.expected_val = pow(res.base_val, abs(res.exponent_val));
     return res;
 }
 
@@ -379,15 +379,21 @@ std::optional<z3::expr> Swine::induction_lemma(EvaluatedExponential e1, Evaluate
         e1 = e2;
         e2 = tmp;
     }
-    const auto base {util->term(e1.base_val)};
-    const auto diff {util->term(e2.exponent_val - e1.exponent_val)};
-    const z3::expr premise{e1.base == base && e2.base == base && e2.exponent - e1.exponent == diff};
-    z3::expr conclusion{e2.exp_expression == e1.exp_expression * z3::pw(base, diff)};
-    return z3::implies(premise, conclusion);
+    const auto base_val {e1.base_val};
+    const auto diff_val {e2.exponent_val - e1.exponent_val};
+    if (pow(base_val, e2.exponent_val) - pow(base_val, e1.exponent_val) != pow(base_val, diff_val)) {
+        const auto base {util->term(base_val)};
+        const auto diff {util->term(diff_val)};
+        const z3::expr premise{e1.base == base && e2.base == base && e2.exponent - e1.exponent == diff && e1.exponent >= 0};
+        const z3::expr conclusion{e2.exp_expression == e1.exp_expression * z3::pw(base, diff)};
+        return z3::implies(premise, conclusion);
+    } else {
+        return {};
+    }
 }
 
 void Swine::induction_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas) {
-    std::unordered_map<boost::multiprecision::cpp_int, std::vector<EvaluatedExponential>> exps_by_base;
+    std::unordered_map<cpp_int, std::vector<EvaluatedExponential>> exps_by_base;
     for (const auto &f: frames) {
         for (const auto &g: f.exp_groups) {
             for (const auto e: g->maybe_non_neg_base()) {
