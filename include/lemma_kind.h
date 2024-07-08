@@ -17,7 +17,8 @@ static const std::unordered_set<LemmaKind> values {LemmaKind::Symmetry,
                                                   LemmaKind::Bounding,
                                                   LemmaKind::Interpolation,
                                                   LemmaKind::Monotonicity,
-                                                  LemmaKind::Modulo};
+                                                  LemmaKind::Modulo,
+                                                  LemmaKind::Induction};
 
 std::string str(const LemmaKind k);
 
