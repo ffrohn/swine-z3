@@ -135,7 +135,11 @@ int main(int argc, char *argv[]) {
         swine.add(z3::expr(ctx, Z3_ast_vector_get(ctx, v, i)));
     }
     Z3_ast_vector_dec_ref(ctx, v);
-    std::cout << swine.check() << std::endl;
+    const auto res {swine.check()};
+    std::cout << res << std::endl;
+    if (res == z3::sat) {
+        std::cout << swine.get_model() << std::endl;
+    }
     if (show_version) {
         version();
     }
