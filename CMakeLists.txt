@@ -6,6 +6,8 @@ set(CMAKE_CXX_STANDARD 20)
 
 set(EXECUTABLE swine-z3)
 
+set(CMAKE_LIBRARY_PATH $ENV{LD_LIBRARY_PATH})
+
 set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 set(BUILD_SHARED_LIBS OFF)
 add_link_options(-static)
