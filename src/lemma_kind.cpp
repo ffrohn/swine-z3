@@ -12,6 +12,7 @@ std::string lemma_kind::str(const LemmaKind k) {
     case LemmaKind::Bounding: return "bounding";
     case LemmaKind::Interpolation: return "interpolation";
     case LemmaKind::Monotonicity: return "monotonicity";
+    case LemmaKind::Induction: return "induction";
     default: throw std::invalid_argument("unknown lemma kind");
     }
 }

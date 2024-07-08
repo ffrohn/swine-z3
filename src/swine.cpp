@@ -34,6 +34,7 @@ std::ostream& operator<<(std::ostream &s, const Swine::Statistics &stats) {
     s << "bounding lemmas      : " << stats.bounding_lemmas << std::endl;
     s << "monotonicity lemmas  : " << stats.monotonicity_lemmas << std::endl;
     s << "modulo lemmas        : " << stats.modulo_lemmas << std::endl;
+    s << "induction lemmas     : " << stats.induction_lemmas << std::endl;
     s << "interpolation lemmas : " << stats.interpolation_lemmas << std::endl;
     s << "non constant base    : " << (stats.non_constant_base ? "true" : "false") << std::endl;
     return s;
@@ -91,6 +92,8 @@ void Swine::add_lemma(const z3::expr &t, const LemmaKind kind) {
     case LemmaKind::Bounding: ++stats.bounding_lemmas;
         break;
     case LemmaKind::Monotonicity: ++stats.monotonicity_lemmas;
+        break;
+    case LemmaKind::Induction: ++stats.induction_lemmas;
         break;
     default: throw std::invalid_argument("unknown lemma kind");
     }
@@ -367,6 +370,49 @@ void Swine::interpolation_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &le
     }
 }
 
+std::optional<z3::expr> Swine::induction_lemma(EvaluatedExponential e1, EvaluatedExponential e2) {
+    if (e1.base_val != e2.base_val || e1.exponent_val < 2 || e2.exponent_val < 2 || e1.exponent_val == e2.exponent_val) {
+        return {};
+    }
+    if (e1.exponent_val > e2.exponent_val) {
+        const auto tmp {e1};
+        e1 = e2;
+        e2 = tmp;
+    }
+    const auto base {util->term(e1.base_val)};
+    const auto diff {util->term(e2.exponent_val - e1.exponent_val)};
+    const z3::expr premise{e1.base == base && e2.base == base && e2.exponent - e1.exponent == diff};
+    z3::expr conclusion{e2.exp_expression == e1.exp_expression * z3::pw(base, diff)};
+    return z3::implies(premise, conclusion);
+}
+
+void Swine::induction_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas) {
+    std::unordered_map<boost::multiprecision::cpp_int, std::vector<EvaluatedExponential>> exps_by_base;
+    for (const auto &f: frames) {
+        for (const auto &g: f.exp_groups) {
+            for (const auto e: g->maybe_non_neg_base()) {
+                const auto eval {evaluate_exponential(e)};
+                if (eval.base_val > 1) {
+                    const auto it {exps_by_base.emplace(eval.base_val, std::vector<EvaluatedExponential>()).first};
+                    it->second.emplace_back(eval);
+                }
+            }
+        }
+    }
+    for (auto &[_,exps]: exps_by_base) {
+        if (exps.size() > 1) {
+            std::sort(exps.begin(), exps.end(), [](const auto &e1, const auto &e2) {
+                return e1.exponent_val < e2.exponent_val;
+            });
+            for (auto it = exps.begin(); std::next(it) != exps.end(); ++it) {
+                if (const auto lem {induction_lemma(*it, *std::next(it))}) {
+                    lemmas.emplace_back(*lem, LemmaKind::Induction);
+                }
+            }
+        }
+    }
+}
+
 std::optional<z3::expr> Swine::monotonicity_lemma(const EvaluatedExponential &e1, const EvaluatedExponential &e2) {
     if ((e1.base_val > e2.base_val && e1.exponent_val < e2.exponent_val)
         || (e1.base_val < e2.base_val && e1.exponent_val > e2.exponent_val)
@@ -566,6 +612,7 @@ z3::check_result Swine::check(z3::expr_vector assumptions) {
                     lemmas = preprocess_lemmas(lemmas);
                 }
                 if (lemmas.empty()) {
+                    induction_lemmas(lemmas);
                     interpolation_lemmas(lemmas);
                     lemmas = preprocess_lemmas(lemmas);
                 }

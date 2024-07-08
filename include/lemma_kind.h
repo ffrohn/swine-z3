@@ -7,7 +7,7 @@
 namespace swine {
 
 enum class LemmaKind {
-    Symmetry, Bounding, Interpolation, Monotonicity, Modulo
+    Symmetry, Bounding, Interpolation, Monotonicity, Modulo, Induction
 };
 
 

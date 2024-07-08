@@ -61,6 +61,7 @@ private:
         unsigned int modulo_lemmas {0};
         unsigned int interpolation_lemmas {0};
         unsigned int monotonicity_lemmas {0};
+        unsigned int induction_lemmas {0};
         unsigned int num_assertions {0};
         bool non_constant_base {false};
     };
@@ -99,6 +100,8 @@ private:
     void interpolation_lemma(const EvaluatedExponential &e, std::vector<std::pair<z3::expr, LemmaKind>> &lemmas);
     void interpolation_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas);
     z3::expr_vector tangent_refinement(const z3::expr &exponent1, const z3::expr &exponent2, const z3::expr &expected1, const z3::expr &expected2);
+    std::optional<z3::expr> induction_lemma(EvaluatedExponential e1, EvaluatedExponential e2);
+    void induction_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas);
     std::optional<z3::expr> monotonicity_lemma(const EvaluatedExponential &e1, const EvaluatedExponential &e2);
     void monotonicity_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas);
     void mod_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas);
