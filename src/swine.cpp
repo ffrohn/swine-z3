@@ -532,6 +532,23 @@ z3::check_result Swine::check(z3::expr_vector assumptions) {
                     if (config.validate_sat) {
                         verify();
                     }
+                    if (config.get_lemmas) {
+                        std::cout << "===== lemmas =====" << std::endl;
+                        for (const auto &k: lemma_kind::values) {
+                            auto first {true};
+                            for (const auto &f: frames) {
+                                for (const auto &[id,l]: f.lemmas) {
+                                    if (f.lemma_kinds.at(id) == k) {
+                                        if (first) {
+                                            std::cout << "----- " << k << " lemmas -----" << std::endl;
+                                            first = false;
+                                        }
+                                        std::cout << l << std::endl;
+                                    }
+                                }
+                            }
+                        }
+                    }
                     break;
                 }
                 symmetry_lemmas(lemmas);
