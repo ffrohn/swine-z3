@@ -393,6 +393,9 @@ std::optional<z3::expr> Swine::induction_lemma(EvaluatedExponential e1, Evaluate
 }
 
 void Swine::induction_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas) {
+    if (!config.is_active(LemmaKind::Induction)) {
+        return;
+    }
     std::unordered_map<cpp_int, std::vector<EvaluatedExponential>> exps_by_base;
     for (const auto &f: frames) {
         for (const auto &g: f.exp_groups) {

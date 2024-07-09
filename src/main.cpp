@@ -18,14 +18,13 @@ void argument_parsing_failed(const std::string &str) {
 }
 
 void print_help() {
-    const auto length {std::string("  --semantics [total|partial]").length()};
+    const auto length {std::string("  --no-constant-folding").length()};
     std::cout << std::endl;
     std::cout << "***** SwInE Z3 -- SMT with Integer Exponentiation *****" << std::endl;
     std::cout << std::endl;
     std::cout << "usage: swine [args] input.smt2" << std::endl;
     std::cout << std::endl;
     std::cout << "valid arguments:" << std::endl;
-    std::cout << "  --semantics [total|partial] : choose the semantics for exp  (default: total)" << std::endl;
     for (const auto k: lemma_kind::values) {
         const auto str {std::string("  --no-") + lemma_kind::str(k)};
         const auto ws {length - str.length()};
@@ -36,14 +35,14 @@ void print_help() {
         const auto ws {length - str.length()};
         std::cout << str << std::string(ws, ' ') << " : disable " << k << std::endl;
     }
-    std::cout << "  --validate-sat              : validate SAT results by evaluating the input w.r.t. solution" << std::endl;
-    std::cout << "  --validate-unsat c          : validate UNSAT results by forcing exponents to values in {0,...,c}, c in IN" << std::endl;
-    std::cout << "  --get-lemmas                : print all lemmas that were used in the final proof if UNSAT is proven" << std::endl;
-    std::cout << "  --stats                     : print statistics in the end" << std::endl;
-    std::cout << "  --help                      : print this text and exit" << std::endl;
-    std::cout << "  --version                   : print the SwInE version and exit" << std::endl;
-    std::cout << "  --no-version                : omit the SwInE version at the end of the output" << std::endl;
-    std::cout << "  --log                       : enable logging" << std::endl;
+    std::cout << "  --validate-sat        : validate SAT results by evaluating the input w.r.t. solution" << std::endl;
+    std::cout << "  --validate-unsat c    : validate UNSAT results by forcing exponents to values in {0,...,c}, c in IN" << std::endl;
+    std::cout << "  --get-lemmas          : print all lemmas that were used in the final proof if UNSAT is proven, or all lemmas if SAT is shown" << std::endl;
+    std::cout << "  --stats               : print statistics in the end" << std::endl;
+    std::cout << "  --help                : print this text and exit" << std::endl;
+    std::cout << "  --version             : print the SwInE version and exit" << std::endl;
+    std::cout << "  --no-version          : omit the SwInE version at the end of the output" << std::endl;
+    std::cout << "  --log                 : enable logging" << std::endl;
     std::cout << std::endl;
 }
 
