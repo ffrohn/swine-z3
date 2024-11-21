@@ -1,11 +1,12 @@
-#!/bin/bash
+#!/bin/sh
 
-# Reconfigures the cmake build directory and triggers a build. To be executed
-# from a docker container where the LoAT root directory is mounted at
-# /LoAT/. Reconfiguration is necessary to get the information whether the
-# working tree is clean or not.
+# Builds swine. To be executed from a docker container where the swine
+# root directory is mounted at /swine-z3/
 
-mkdir -p /swine-z3/build
-cd /swine-z3/build
-cmake -DCMAKE_BUILD_TYPE=Release ../
+mkdir -p /swine-z3/tmp/build
+cd /swine-z3/tmp/build
+cmake -DCMAKE_BUILD_TYPE=Release ../..
 make -j
+cp swine-z3 libswine-z3.a ../..
+rm -r /swine-z3/tmp
+

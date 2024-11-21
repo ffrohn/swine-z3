@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# creates a StarExec-bundle with the binary from build/release
+# creates a StarExec-bundle with the binary from $REPO/build
 
 ME=`basename "$0"`
 

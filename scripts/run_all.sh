@@ -1,3 +1,7 @@
+#!/bin/bash
+
+# runs swine on all smt2-files in a given folder
+
 folder=$1
 shift
 ../build/swine-z3 --version

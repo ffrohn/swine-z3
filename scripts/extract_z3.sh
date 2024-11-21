@@ -1,5 +1,12 @@
 #!/bin/bash
+
+# builds z3 and copies its headers and the resulting libraries to the
+# local file system, so that it is available for development in a
+# dev-container
+
 DEST=../docker/base-image/usr/local
+mkdir -p $DEST/lib
+mkdir -p $DEST/include
 echo "build..."
 docker build --target z3 -t z3 -f ../docker/z3.Dockerfile ..
 echo "create..."
