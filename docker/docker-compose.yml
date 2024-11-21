@@ -3,6 +3,7 @@ services:
   z3-build:
     user: $USER
     container_name: z3-build
+    image: z3-build
     security_opt: [seccomp:unconfined]
     cap_add: [SYS_PTRACE]
     build:
@@ -11,6 +12,9 @@ services:
     network_mode: host
 
   swine-z3-build:
+    depends_on:
+      z3-build:
+        condition: service_completed_successfully
     image: swine-z3-build
     user: $USER
     container_name: swine-z3-build

@@ -1,4 +1,4 @@
-FROM voidlinux/voidlinux-musl:latest as z3
+FROM voidlinux/voidlinux-musl:latest AS z3-build
 
 ENV CFLAGS -march=x86-64 -O2
 ENV CXXFLAGS $CFLAGS

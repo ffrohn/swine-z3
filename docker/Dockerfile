@@ -1,4 +1,4 @@
-FROM z3 as swine-z3-build
+FROM z3-build AS swine-z3-build
 
 RUN xbps-install -yS boost-devel cln-devel gmp-devel
 
