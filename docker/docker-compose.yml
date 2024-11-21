@@ -1,0 +1,24 @@
+services:
+
+  z3-build:
+    user: $USER
+    container_name: z3-build
+    security_opt: [seccomp:unconfined]
+    cap_add: [SYS_PTRACE]
+    build:
+      context: ..
+      dockerfile: docker/z3.Dockerfile
+    network_mode: host
+
+  swine-z3-build:
+    image: swine-z3-build
+    user: $USER
+    container_name: swine-z3-build
+    security_opt: [seccomp:unconfined]
+    cap_add: [SYS_PTRACE]
+    volumes:
+      - ..:/swine-z3
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    network_mode: host
