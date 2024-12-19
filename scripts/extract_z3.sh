@@ -8,9 +8,9 @@ DEST=../docker/base-image/usr/local
 mkdir -p $DEST/lib
 mkdir -p $DEST/include
 echo "build..."
-docker build --target z3 -t z3 -f ../docker/z3.Dockerfile ..
+docker build --target z3-build -t z3-build -f ../docker/z3.Dockerfile ..
 echo "create..."
-docker create -ti --name z3_dummy z3 sh
+docker create -ti --name z3_dummy z3-build sh
 echo "cp..."
 docker cp z3_dummy:/usr/local/include/z3_algebraic.h $DEST/include
 docker cp z3_dummy:/usr/local/include/z3_api.h $DEST/include
