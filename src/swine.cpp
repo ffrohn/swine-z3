@@ -382,10 +382,9 @@ std::optional<z3::expr> Swine::induction_lemma(EvaluatedExponential e1, Evaluate
     const auto base_val {e1.base_val};
     const auto diff_val {e2.exponent_val - e1.exponent_val};
     if (pow(base_val, e2.exponent_val) - pow(base_val, e1.exponent_val) != pow(base_val, diff_val)) {
-        const auto base {util->term(base_val)};
         const auto diff {util->term(diff_val)};
-        const z3::expr premise{e1.base == base && e2.base == base && e2.exponent - e1.exponent == diff && e1.exponent >= 0};
-        const z3::expr conclusion{e2.exp_expression == e1.exp_expression * z3::pw(base, diff)};
+        const z3::expr premise{e1.base == e2.base && e2.exponent - e1.exponent == diff && e1.exponent >= 0};
+        const z3::expr conclusion{e2.exp_expression == e1.exp_expression * z3::pw(e1.base, diff)};
         return z3::implies(premise, conclusion);
     } else {
         return {};
