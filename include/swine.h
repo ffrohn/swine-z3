@@ -93,7 +93,6 @@ private:
     z3::check_result check(z3::expr_vector assumptions);
     void base_symmetry_lemmas(const z3::expr &e, z3::expr_vector &lemmas);
     void exp_symmetry_lemmas(const z3::expr &e, z3::expr_vector &lemmas);
-    void pin_values();
     void symmetry_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas);
     void compute_bounding_lemmas(const ExpGroup &g);
     void bounding_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas);
