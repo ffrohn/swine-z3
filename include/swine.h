@@ -32,7 +32,6 @@ private:
         std::unordered_map<unsigned, LemmaKind> lemma_kinds;
         std::unordered_map<unsigned, z3::expr> lemmas;
         std::unordered_map<unsigned, z3::expr_vector> bounding_lemmas;
-        bool has_overflow {false};
         bool assert_failed {false};
 
         Frame(z3::context &ctx);
@@ -85,6 +84,9 @@ private:
     std::unordered_map<unsigned, std::vector<std::pair<boost::multiprecision::cpp_int, long long>>> interpolation_points;
     std::unique_ptr<Preprocessor> preproc;
     std::unique_ptr<ExpFinder> exp_finder;
+    bool sat_mode {true};
+    long long bound {2};
+    z3::model model;
 
     friend std::ostream& operator<<(std::ostream &s, const Swine &swine);
 
@@ -111,6 +113,7 @@ private:
     void add_lemma(const z3::expr &lemma, const LemmaKind kind);
     std::vector<std::pair<z3::expr, LemmaKind>> preprocess_lemmas(const std::vector<std::pair<z3::expr, LemmaKind>> &lemmas);
     z3::expr get_value(const z3::expr &exp) const;
+    void add_bounds();
 
 public:
 

@@ -52,7 +52,8 @@ Swine::Swine(const Config &config, z3::context &ctx):
     solver(ctx),
     util(std::make_unique<Util>(ctx, this->config)),
     preproc(std::make_unique<Preprocessor>(*util)),
-    exp_finder(std::make_unique<ExpFinder>(*util)) {
+    exp_finder(std::make_unique<ExpFinder>(*util)),
+    model(ctx) {
     solver.set("model", true);
     if (config.get_lemmas) {
         solver.set("unsat_core", true);
@@ -100,7 +101,7 @@ void Swine::add_lemma(const z3::expr &t, const LemmaKind kind) {
 }
 
 z3::expr Swine::get_value(const z3::expr &exp) const {
-    return solver.get_model().eval(exp, true);
+    return model.eval(exp, true);
 }
 
 void Swine::pin_values() {
@@ -507,6 +508,20 @@ void Swine::mod_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas) {
     }
 }
 
+void Swine::add_bounds() {
+    std::unordered_set<unsigned int> seen;
+    for (const auto &f: frames) {
+        for (const auto &g: f.exp_groups) {
+            for (const auto &e: g->all()) {
+                const auto exponent {e.arg(1)};
+                if (seen.insert(exponent.id()).second) {
+                    solver.add(exponent <= util->term(boost::multiprecision::pow(boost::multiprecision::cpp_int(2), bound)));
+                }
+            }
+        }
+    }
+}
+
 std::vector<std::pair<z3::expr, LemmaKind>> Swine::preprocess_lemmas(const std::vector<std::pair<z3::expr, LemmaKind>> &lemmas) {
     std::vector<std::pair<z3::expr, LemmaKind>> res;
     for (const auto &[l,k]: lemmas) {
@@ -537,12 +552,21 @@ z3::check_result Swine::check(z3::expr_vector assumptions) {
                     }
                 }
             }
+            if (sat_mode) {
+                solver.push();
+                add_bounds();
+            }
             if (!assumptions.empty()) {
                 res = solver.check(assumptions);
             } else {
                 res = solver.check();
             }
             if (res == z3::unsat) {
+                if (sat_mode) {
+                    sat_mode = false;
+                    solver.pop();
+                    continue;
+                }
                 if (config.get_lemmas) {
                     const auto core {solver.unsat_core()};
                     std::unordered_set<unsigned> ids;
@@ -565,15 +589,6 @@ z3::check_result Swine::check(z3::expr_vector assumptions) {
                         }
                     }
                 }
-                for (const auto &f: frames) {
-                    if (f.has_overflow) {
-                        if (config.log) {
-                            std::cout << "search space exhausted with overflow" << std::endl;
-                        }
-                        res = z3::unknown;
-                        break;
-                    }
-                }
                 if (config.validate_unsat) {
                     brute_force();
                 }
@@ -584,10 +599,17 @@ z3::check_result Swine::check(z3::expr_vector assumptions) {
                 }
                 break;
             } else if (res == z3::sat) {
+                if (!sat_mode) {
+                    sat_mode = true;
+                    ++bound;
+                    continue;
+                }
+                model = solver.get_model();
+                solver.pop();
                 bool sat {true};
                 if (config.log) {
                     std::cout << "candidate model:" << std::endl;
-                    std::cout << solver.get_model() << std::endl;
+                    std::cout << model << std::endl;
                 }
                 std::vector<std::pair<z3::expr, LemmaKind>> lemmas;
                 // check if the model can be lifted
@@ -658,9 +680,7 @@ z3::check_result Swine::check(z3::expr_vector assumptions) {
                 }
             }
         } catch (const ExponentOverflow &e) {
-            frames.back().has_overflow = true;
-            solver.add(e.get_t() >= util->term(std::numeric_limits<long long>::min()));
-            solver.add(e.get_t() <= util->term(std::numeric_limits<long long>::max()));
+            return z3::unknown;
         }
     }
     if (config.statistics) {
@@ -691,7 +711,7 @@ void Swine::reset() {
 
 void Swine::verify() const {
     TermEvaluator eval{*util};
-    const auto model {solver.get_model()};
+    const auto model {this->model};
     for (const auto &f: frames) {
         for (const auto &[_,a]: f.preprocessed_assertions) {
             if (!eval.evaluate(a, model).is_true()) {
