@@ -103,6 +103,21 @@ z3::expr Swine::get_value(const z3::expr &exp) const {
     return solver.get_model().eval(exp, true);
 }
 
+void Swine::pin_values() {
+    z3::expr_vector add {util->ctx};
+    for (const auto &f: frames) {
+        for (const auto &e: f.exps) {
+            const auto ee {evaluate_exponential(e)};
+            if (ee.exp_expression_val != ee.expected_val) {
+                add.push_back(util->make_exp(util->term(ee.base_val), util->term(ee.exponent_val)) == util->term(ee.expected_val));
+            }
+        }
+    }
+    for (const auto &e: add) {
+        solver.add(e);
+    }
+}
+
 void Swine::symmetry_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas) {
     if (!config.is_active(LemmaKind::Symmetry)) {
         return;
@@ -552,6 +567,9 @@ z3::check_result Swine::check(z3::expr_vector assumptions) {
                 }
                 for (const auto &f: frames) {
                     if (f.has_overflow) {
+                        if (config.log) {
+                            std::cout << "search space exhausted with overflow" << std::endl;
+                        }
                         res = z3::unknown;
                         break;
                     }
@@ -561,6 +579,9 @@ z3::check_result Swine::check(z3::expr_vector assumptions) {
                 }
                 break;
             } else if (res == z3::unknown) {
+                if (config.log) {
+                    std::cout << "unknown from z3" << std::endl;
+                }
                 break;
             } else if (res == z3::sat) {
                 bool sat {true};
@@ -631,6 +652,7 @@ z3::check_result Swine::check(z3::expr_vector assumptions) {
                         return z3::unknown;
                     }
                 }
+                pin_values();
                 for (const auto &[l, kind]: lemmas) {
                     add_lemma(l, kind);
                 }
