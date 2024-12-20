@@ -495,12 +495,14 @@ void Swine::mod_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas) {
 
 void Swine::add_bounds() {
     std::unordered_set<unsigned int> seen;
+    const auto b {util->term(boost::multiprecision::pow(boost::multiprecision::cpp_int(2), bound))};
     for (const auto &f: frames) {
         for (const auto &g: f.exp_groups) {
             for (const auto &e: g->all()) {
                 const auto exponent {e.arg(1)};
                 if (seen.insert(exponent.id()).second) {
-                    solver.add(exponent <= util->term(boost::multiprecision::pow(boost::multiprecision::cpp_int(2), bound)));
+                    solver.add(exponent <= b);
+                    solver.add(-b <= exponent);
                 }
             }
         }
@@ -537,7 +539,7 @@ z3::check_result Swine::check(z3::expr_vector assumptions) {
                     }
                 }
             }
-            if (sat_mode) {
+            if (config.toggle_mode && sat_mode) {
                 solver.push();
                 add_bounds();
             }
@@ -547,7 +549,7 @@ z3::check_result Swine::check(z3::expr_vector assumptions) {
                 res = solver.check();
             }
             if (res == z3::unsat) {
-                if (sat_mode) {
+                if (config.toggle_mode && sat_mode) {
                     sat_mode = false;
                     solver.pop();
                     continue;
@@ -584,13 +586,15 @@ z3::check_result Swine::check(z3::expr_vector assumptions) {
                 }
                 break;
             } else if (res == z3::sat) {
-                if (!sat_mode) {
+                if (config.toggle_mode && !sat_mode) {
                     sat_mode = true;
                     ++bound;
                     continue;
                 }
                 model = solver.get_model();
-                solver.pop();
+                if (config.toggle_mode) {
+                    solver.pop();
+                }
                 bool sat {true};
                 if (config.log) {
                     std::cout << "candidate model:" << std::endl;

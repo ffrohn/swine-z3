@@ -23,6 +23,7 @@ public:
     bool get_lemmas {false};
     bool debug {false};
     unsigned rlimit {0};
+    bool toggle_mode {true};
 
     void deactivate(const LemmaKind k);
 
