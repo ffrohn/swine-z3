@@ -26,7 +26,7 @@ jobs:
       - run: |
           sudo mkdir -p /usr/local/lib
           sudo mkdir -p /usr/local/include
-          sudo mv ./z3/z3-4.13.4-arm64-osx-13.7.1/bin/libz3.a /usr/local/lib/
+          sudo mv ./z3/z3-4.13.4-arm64-osx-13.7.1/bin/libz3.dylib /usr/local/lib/
           sudo mv ./z3/z3-4.13.4-arm64-osx-13.7.1/include/* /usr/local/include/
         shell: bash
 
