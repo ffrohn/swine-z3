@@ -1,0 +1,44 @@
+name: Build SwInE
+
+on:
+  # push:
+  #   branches:
+  #     - master
+  #   paths:
+  #     - 'src/**'
+  #     - 'CMakeLists.txt'
+  #     - '.github/workflows/build-swine.yml'
+
+  # Also allow this action to be triggered manually via a button in
+  # the GitHub UI.
+  workflow_dispatch:
+
+  workflow_call:
+
+jobs:
+  build-binary:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Build Binary
+        uses: addnab/docker-run-action@v3
+        with:
+          # Build binary inside the latest pushed base image:
+          image: ${{ vars.DOCKERHUB_USERNAME }}/swine-base:16ede3fc
+          options: -v ${{ github.workspace }}:/SwInE
+          shell: bash
+          run: |
+            mkdir -p /SwInE/build/release
+            cd /SwInE/build/release
+            cmake -DCMAKE_BUILD_TYPE=Release ../../
+            make -j$(nproc)
+
+      - name: Export SwInE Binary
+        uses: actions/upload-artifact@master
+        with:
+          name: swine-z3-static-${{ github.ref_name }}
+          path: |
+            build/release/swine-z3
+
