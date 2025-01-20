@@ -23,6 +23,12 @@ jobs:
           fileName: z3-4.13.4-x64-osx-13.7.1.zip 
           out-file-path: 'z3'
           extract: true
+      - run: |
+          sudo mkdir -p /usr/local/lib
+          sudo mkdir -p /usr/local/include
+          sudo mv ./z3/z3-4.13.4-x64-osx-13.7.1/bin/libz3.a /usr/local/lib/
+          sudo mv ./z3/z3-4.13.4-x64-osx-13.7.1/include/* /usr/local/include/
+        shell: bash
 
       - name: Install boost
         uses: MarkusJx/install-boost@v2
@@ -31,8 +37,6 @@ jobs:
           boost_version: 1.87.0
 
       - run: |
-          sudo mv ./z3/z3-4.13.4-x64-osx-13.7.1/bin/libz3.a /usr/local/lib/
-          sudo mv ./z3/z3-4.13.4-x64-osx-13.7.1/include/* /usr/local/include/
           mkdir -p ./build/release
           cd ./build/release
           cmake -DCMAKE_BUILD_TYPE=Release ../../
