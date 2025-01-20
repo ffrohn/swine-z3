@@ -1,13 +1,6 @@
 name: Build SwInE
 
 on:
-  # push:
-  #   branches:
-  #     - master
-  #   paths:
-  #     - 'src/**'
-  #     - 'CMakeLists.txt'
-  #     - '.github/workflows/build-swine.yml'
 
   # Also allow this action to be triggered manually via a button in
   # the GitHub UI.
@@ -19,26 +12,32 @@ jobs:
   build-binary:
     runs-on: ubuntu-latest
     steps:
+
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Build Binary
-        uses: addnab/docker-run-action@v3
+      - uses: robinraju/release-downloader@v1
         with:
-          # Build binary inside the latest pushed base image:
-          image: loat/swine-base:b8e7827c
-          options: -v ${{ github.workspace }}:/SwInE
-#          shell: bash
-          run: |
-            mkdir -p /SwInE/build/release
-            cd /SwInE/build/release
-            cmake -DCMAKE_BUILD_TYPE=Release ../../
-            make -j$(nproc)
+          repository: 'Z3Prover/z3'
+          tag: z3-4.12.5
+          fileName: z3-4.12.5-x64-glibc-2.31.zip
+          out-file-path: 'z3'
+          extract: true
+
+      - run: |
+          mv ./z3/z3-4.12.5-x64-glibc-2.31/lib/* /usr/local/lib/
+          mv ./z3/z3-4.12.5-x64-glibc-2.31/include/* /usr/local/include/
+          mkdir -p /SwInE/build/release
+          cd /SwInE/build/release
+          cmake -DCMAKE_BUILD_TYPE=Release ../../
+          make -j$(nproc)
+        shell: bash
 
       - name: Export SwInE Binary
         uses: actions/upload-artifact@master
         with:
-          name: swine-z3-static-${{ github.ref_name }}
+          name: swine-z3-${{ github.ref_name }}
           path: |
             build/release/swine-z3
+            build/release/libswine-z3.a
 
