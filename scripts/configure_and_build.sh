@@ -5,7 +5,7 @@
 
 mkdir -p /swine-z3/tmp/build
 cd /swine-z3/tmp/build
-cmake -DCMAKE_BUILD_TYPE=Release ../..
+cmake -DCMAKE_BUILD_TYPE=Release -DSTATIC=ON ../..
 make -j
 cp swine-z3 libswine-z3.a ../..
 rm -r /swine-z3/tmp
