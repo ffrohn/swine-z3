@@ -40,5 +40,5 @@ jobs:
           name: swine-z3-${{ github.ref_name }}
           path: |
             build/release/swine-z3
-            build/release/libswine-z3.a
+            build/release/libswine-z3.so
 
