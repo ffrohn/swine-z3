@@ -1,0 +1,44 @@
+name: Build SwInE
+
+on:
+
+  # Also allow this action to be triggered manually via a button in
+  # the GitHub UI.
+  workflow_dispatch:
+
+  workflow_call:
+
+jobs:
+  build-binary:
+    runs-on: macos-latest
+    steps:
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - uses: robinraju/release-downloader@v1
+        with:
+          repository: 'Z3Prover/z3'
+          tag: z3-4.13.4
+          fileName: z3-4.13.4-x64-osx-13.7.1.zip 
+          out-file-path: 'z3'
+          extract: true
+
+      - run: |
+          sudo port install boost
+          sudo mv ./z3/z3-4.13.4-x64-osx-13.7.1/bin/libz3.a /usr/local/lib/
+          sudo mv ./z3/z3-4.13.4-x64-osx-13.7.1/include/* /usr/local/include/
+          mkdir -p ./build/release
+          cd ./build/release
+          cmake -DCMAKE_BUILD_TYPE=Release ../../
+          make -j$(nproc)
+        shell: bash
+
+      - name: Export SwInE Binary
+        uses: actions/upload-artifact@master
+        with:
+          name: swine-z3-macos-${{ github.ref_name }}
+          path: |
+            build/release/swine-z3
+            build/release/libswine-z3.so
+
