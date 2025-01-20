@@ -8,9 +8,18 @@ set(EXECUTABLE swine-z3)
 
 set(CMAKE_LIBRARY_PATH $ENV{LD_LIBRARY_PATH})
 
-set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-set(BUILD_SHARED_LIBS OFF)
-add_link_options(-static)
+option(STATIC "enable static build" OFF)
+
+if (${STATIC})
+    message(STATUS "Configuring static build")
+    set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+    set(BUILD_SHARED_LIBS OFF)
+    add_link_options(-static)
+else()
+    message(STATUS "Configuring non-static build")
+    set(CMAKE_FIND_LIBRARY_SUFFIXES ".so" ".a")
+    set(BUILD_SHARED_LIBS ON)
+endif()
 
 set(INCLUDE_DIRS
   "${PROJECT_SOURCE_DIR}/include")
@@ -74,7 +83,11 @@ target_sources(${EXECUTABLE} PRIVATE
     "${PROJECT_SOURCE_DIR}/src/version.cpp"
 )
 
-add_library(libswine-z3 STATIC $<TARGET_OBJECTS:objlib>)
+if (${STATIC})
+    add_library(libswine-z3 STATIC $<TARGET_OBJECTS:objlib>)
+else()
+    add_library(libswine-z3 SHARED $<TARGET_OBJECTS:objlib>)
+endif()
 
 set_property(TARGET libswine-z3 PROPERTY OUTPUT_NAME swine-z3)
 
