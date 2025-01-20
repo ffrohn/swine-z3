@@ -18,4 +18,4 @@ RUN cmake -DZ3_BUILD_LIBZ3_SHARED=FALSE -DCMAKE_BUILD_TYPE=Release ..
 RUN make -j$(nproc)
 RUN make install
 
-RUN xbps-install boost-devel
+RUN xbps-install -yS boost-devel
