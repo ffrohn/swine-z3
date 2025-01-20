@@ -32,7 +32,7 @@ jobs:
           run: |
             mkdir -p /SwInE/build/release
             cd /SwInE/build/release
-            cmake -DCMAKE_BUILD_TYPE=Release ../../
+            cmake -DCMAKE_BUILD_TYPE=Release -DSTATIC=ON ../../
             make -j$(nproc)
 
       - name: Export SwInE Binary
