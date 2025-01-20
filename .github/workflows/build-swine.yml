@@ -20,13 +20,13 @@ jobs:
         with:
           repository: 'Z3Prover/z3'
           tag: z3-4.13.4
-          fileName: z3-4.13.4-x64-glibc-2.31.zip
+          fileName: z3-4.13.4-x64-glibc-2.35.zip
           out-file-path: 'z3'
           extract: true
 
       - run: |
-          mv ./z3/z3-4.13.4-x64-glibc-2.31/lib/* /usr/local/lib/
-          mv ./z3/z3-4.13.4-x64-glibc-2.31/include/* /usr/local/include/
+          mv ./z3/z3-4.13.4-x64-glibc-2.35/lib/* /usr/local/lib/
+          mv ./z3/z3-4.13.4-x64-glibc-2.35/include/* /usr/local/include/
           mkdir -p /SwInE/build/release
           cd /SwInE/build/release
           cmake -DCMAKE_BUILD_TYPE=Release ../../
