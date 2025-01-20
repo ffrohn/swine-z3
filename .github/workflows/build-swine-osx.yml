@@ -24,8 +24,13 @@ jobs:
           out-file-path: 'z3'
           extract: true
 
+      - name: Install boost
+        uses: MarkusJx/install-boost@v2
+        id: install-boost
+        with:
+          boost_version: 1.87.0
+
       - run: |
-          sudo port install boost
           sudo mv ./z3/z3-4.13.4-x64-osx-13.7.1/bin/libz3.a /usr/local/lib/
           sudo mv ./z3/z3-4.13.4-x64-osx-13.7.1/include/* /usr/local/include/
           mkdir -p ./build/release
