@@ -28,7 +28,7 @@ jobs:
           # Build binary inside the latest pushed base image:
           image: loat/swine-base:16ede3fc
           options: -v ${{ github.workspace }}:/SwInE
-          shell: bash
+#          shell: bash
           run: |
             mkdir -p /SwInE/build/release
             cd /SwInE/build/release
