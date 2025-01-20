@@ -25,7 +25,7 @@ endif()
 set(INCLUDE_DIRS
   "${PROJECT_SOURCE_DIR}/include")
 
-add_compile_options(-Wall -Wextra -pedantic -Wno-unused-parameter -L/usr/local/lib)
+add_compile_options(-Wall -Wextra -pedantic -Wno-unused-parameter)
 
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELEASE} -g")
 
@@ -94,6 +94,6 @@ set_property(TARGET libswine-z3 PROPERTY OUTPUT_NAME swine-z3)
 
 include_directories(${INCLUDE_DIRS})
 
-target_link_libraries(${EXECUTABLE}
+target_link_libraries(${EXECUTABLE} PUBLIC
     ${Z3}
 )
