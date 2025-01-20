@@ -8,11 +8,11 @@ namespace swine {
 std::string lemma_kind::str(const LemmaKind k) {
     switch (k) {
     case LemmaKind::Symmetry: return "symmetry";
-    case LemmaKind::Modulo: return "modulo";
     case LemmaKind::Bounding: return "bounding";
     case LemmaKind::Interpolation: return "interpolation";
     case LemmaKind::Monotonicity: return "monotonicity";
     case LemmaKind::Induction: return "induction";
+    case LemmaKind::Prime: return "prime";
     default: throw std::invalid_argument("unknown lemma kind");
     }
 }

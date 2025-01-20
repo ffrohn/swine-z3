@@ -33,7 +33,6 @@ std::ostream& operator<<(std::ostream &s, const Swine::Statistics &stats) {
     s << "symmetry lemmas      : " << stats.symmetry_lemmas << std::endl;
     s << "bounding lemmas      : " << stats.bounding_lemmas << std::endl;
     s << "monotonicity lemmas  : " << stats.monotonicity_lemmas << std::endl;
-    s << "modulo lemmas        : " << stats.modulo_lemmas << std::endl;
     s << "induction lemmas     : " << stats.induction_lemmas << std::endl;
     s << "interpolation lemmas : " << stats.interpolation_lemmas << std::endl;
     s << "non constant base    : " << (stats.non_constant_base ? "true" : "false") << std::endl;
@@ -88,7 +87,7 @@ void Swine::add_lemma(const z3::expr &t, const LemmaKind kind) {
         break;
     case LemmaKind::Symmetry: ++stats.symmetry_lemmas;
         break;
-    case LemmaKind::Modulo: ++stats.modulo_lemmas;
+    case LemmaKind::Prime: ++stats.prime_lemmas;
         break;
     case LemmaKind::Bounding: ++stats.bounding_lemmas;
         break;
@@ -478,16 +477,56 @@ void Swine::monotonicity_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lem
     }
 }
 
-void Swine::mod_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas) {
-    if (!config.is_active(LemmaKind::Modulo)) {
+void Swine::prime_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas) {
+    if (!config.is_active(LemmaKind::Prime)) {
         return;
     }
     for (auto f: frames) {
         for (auto e: f.exps) {
             const auto ee {evaluate_exponential(e)};
-            if (ee.exponent_val > 0 && ee.exp_expression_val % abs(ee.base_val) != 0) {
-                const auto l {z3::implies(ee.exponent != ctx.int_val(0), ctx.int_val(0) == z3::mod(ee.exp_expression, ee.base))};
-                lemmas.emplace_back(l, LemmaKind::Modulo);
+            if (ee.exp_expression_val < 2 || ee.base_val < 2) {
+                continue;
+            }
+            auto base_val {ee.base_val};
+            auto val {ee.exp_expression_val};
+            while (val % base_val == 0) {
+                val /= base_val;
+            }
+            auto done {false};
+            const auto process_divisor = [&](const auto &d) {
+                if (val % d == 0 && base_val % d == 0) {
+                    while (val % d == 0) {
+                        val /= d;
+                    }
+                    while (base_val % d == 0) {
+                        base_val /= d;
+                    }
+                } else {
+                    const auto dt {util->term(d)};
+                    const auto l {(z3::mod(ee.base, dt) == 0) == (z3::mod(ee.exp_expression, dt) == 0)};
+                    lemmas.emplace_back(l, LemmaKind::Prime);
+                    return true;
+                }
+                return false;
+            };
+            for (const auto d: std::vector{2,3,5}) {
+                process_divisor(d);
+            }
+            if (done) {
+                continue;
+            }
+            int inc[8] {4, 2, 4, 2, 4, 6, 2, 6};
+            boost::multiprecision::cpp_int d{7};
+            auto i{0};
+            while (d * d <= val) {
+                process_divisor(d);
+                d = d + inc[i];
+                i = (i + 1) % 8;
+            }
+            if (!done) {
+                const auto dt {util->term(base_val)};
+                const auto l{(z3::mod(ee.base, dt) == 0) == (z3::mod(ee.exp_expression, dt) == 0)};
+                lemmas.emplace_back(l, LemmaKind::Prime);
             }
         }
     }
@@ -648,10 +687,7 @@ z3::check_result Swine::check(z3::expr_vector assumptions) {
                     lemmas = preprocess_lemmas(lemmas);
                 }
                 if (lemmas.empty()) {
-                    mod_lemmas(lemmas);
-                    lemmas = preprocess_lemmas(lemmas);
-                }
-                if (lemmas.empty()) {
+                    prime_lemmas(lemmas);
                     induction_lemmas(lemmas);
                     interpolation_lemmas(lemmas);
                     lemmas = preprocess_lemmas(lemmas);

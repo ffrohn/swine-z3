@@ -57,7 +57,7 @@ private:
         unsigned int iterations {0};
         unsigned int symmetry_lemmas {0};
         unsigned int bounding_lemmas {0};
-        unsigned int modulo_lemmas {0};
+        unsigned int prime_lemmas {0};
         unsigned int interpolation_lemmas {0};
         unsigned int monotonicity_lemmas {0};
         unsigned int induction_lemmas {0};
@@ -106,7 +106,7 @@ private:
     void induction_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas);
     std::optional<z3::expr> monotonicity_lemma(const EvaluatedExponential &e1, const EvaluatedExponential &e2);
     void monotonicity_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas);
-    void mod_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas);
+    void prime_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas);
     void verify() const;
     void brute_force();
     void add_lemma(const z3::expr &lemma, const LemmaKind kind);

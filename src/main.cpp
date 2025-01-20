@@ -37,6 +37,7 @@ void print_help() {
     }
     std::cout << "  --validate-sat        : validate SAT results by evaluating the input w.r.t. solution" << std::endl;
     std::cout << "  --validate-unsat c    : validate UNSAT results by forcing exponents to values in {0,...,c}, c in IN" << std::endl;
+    std::cout << "  --no-phasing          : disable phasing" << std::endl;
     std::cout << "  --get-lemmas          : print all lemmas that were used in the final proof if UNSAT is proven, or all lemmas if SAT is shown" << std::endl;
     std::cout << "  --stats               : print statistics in the end" << std::endl;
     std::cout << "  --help                : print this text and exit" << std::endl;
@@ -72,6 +73,8 @@ int main(int argc, char *argv[]) {
                 if (bound >= 0) {
                     config.validate_unsat = bound;
                 }
+            } else if (boost::iequals(argv[arg], "--no-phasing")) {
+                config.toggle_mode = false;
             } else if (boost::iequals(argv[arg], "--get-lemmas")) {
                 config.get_lemmas = true;
             } else if (boost::iequals(argv[arg], "--log")) {
