@@ -37,6 +37,11 @@ jobs:
           boost_version: 1.87.0
 
       - run: |
+          ls ${{github.workspace}}/boost/boost
+          export C_INCLUDE_PATH=/usr/local/include
+          export CPLUS_INCLUDE_PATH=/usr/local/include
+          export LIBRARY_PATH=/usr/local/lib
+          export LD_LIBRARY_PATH=/usr/local/lib
           mkdir -p ./build/release
           cd ./build/release
           cmake -DCMAKE_BUILD_TYPE=Release ../../
