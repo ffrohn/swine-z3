@@ -25,6 +25,7 @@ jobs:
           extract: true
 
       - run: |
+          sudo apt install libboost-dev
           sudo mv ./z3/z3-4.13.4-x64-glibc-2.35/bin/libz3.so /usr/local/lib/
           sudo mv ./z3/z3-4.13.4-x64-glibc-2.35/include/* /usr/local/include/
           mkdir -p ./build/release
