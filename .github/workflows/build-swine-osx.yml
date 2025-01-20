@@ -47,7 +47,7 @@ jobs:
           mkdir -p ./build/release
           cd ./build/release
           cmake -DCMAKE_BUILD_TYPE=Release ../../
-          make -j$(nproc)
+          make
         shell: bash
 
       - name: Export SwInE Binary
