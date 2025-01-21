@@ -19,7 +19,9 @@ else()
     message(STATUS "Configuring non-static build")
     set(CMAKE_FIND_LIBRARY_SUFFIXES ".so" ".dylib" ".dll" ".a")
     set(BUILD_SHARED_LIBS ON)
-    add_compile_options(-fPIC)
+    if (UNIX)
+        add_compile_options(-fPIC)
+    endif()
 endif()
 
 set(INCLUDE_DIRS

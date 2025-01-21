@@ -49,6 +49,9 @@ jobs:
           }
           mv ./boost/boost/lib/* ./build/
           mv ./boost/boost/include/* ./include/
+          pwd
+          ls ./include
+          ls ./include/boost
           cd ./build
           cmake -DCMAKE_BUILD_TYPE=Release ..
           cmake --build .
