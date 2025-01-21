@@ -24,9 +24,9 @@ jobs:
           out-file-path: 'z3'
           extract: true
       - run: |
-          mkdir -p ./build/release
+          mkdir -p ${{github.workspace}}/build
           sudo mkdir -p /usr/local/include
-          sudo mv ./z3/z3-4.13.4-arm64-osx-13.7.1/bin/libz3.dylib ./build/release/
+          sudo mv ./z3/z3-4.13.4-arm64-osx-13.7.1/bin/libz3.dylib ${{github.workspace}}/build/
           sudo mv ./z3/z3-4.13.4-arm64-osx-13.7.1/include/* /usr/local/include/
         shell: bash
 
@@ -39,20 +39,20 @@ jobs:
       - run: |
           export C_INCLUDE_PATH=/usr/local/include
           export CPLUS_INCLUDE_PATH=/usr/local/include
-          export LD_LIBRARY_PATH=./build/release
-          export LIBRARY_PATH=./build/release
+          export LD_LIBRARY_PATH=${{github.workspace}}/build
+          export LIBRARY_PATH=${{github.workspace}}/build
           test() {
-            ret=`./swine-z3 ../../examples/ex0.smt2`
+            ret=`./swine-z3 ../examples/ex0.smt2`
             echo $ret
             if [[ $ret != sat* ]]
             then
                 return 1
             fi
           }
-          sudo mv ${{github.workspace}}/boost/boost/lib/* ./build/release/
+          sudo mv ${{github.workspace}}/boost/boost/lib/* ${{github.workspace}}/build/
           sudo mv ${{github.workspace}}/boost/boost/include/* /usr/local/include/
-          cd ./build/release
-          cmake -DCMAKE_BUILD_TYPE=Release ../../
+          cd ${{github.workspace}}/build
+          cmake -DCMAKE_BUILD_TYPE=Release ../
           make
           test
         shell: bash
@@ -62,6 +62,6 @@ jobs:
         with:
           name: swine-z3-macos-${{ github.ref_name }}
           path: |
-            build/release/swine-z3
-            build/release/libswine-z3.dylib
+            ${{github.workspace}}/build/swine-z3
+            ${{github.workspace}}/build/libswine-z3.dylib
 
