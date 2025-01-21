@@ -39,6 +39,8 @@ jobs:
       - run: |
           export C_INCLUDE_PATH=/usr/local/include
           export CPLUS_INCLUDE_PATH=/usr/local/include
+          export LD_LIBRARY_PATH=./build/release
+          export LIBRARY_PATH=./build/release
           test() {
             ret=`./swine-z3 ../../examples/ex0.smt2`
             echo $ret
