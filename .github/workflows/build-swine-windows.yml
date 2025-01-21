@@ -53,8 +53,6 @@ jobs:
           cd ./build
           cmake -DCMAKE_BUILD_TYPE=Release ..
           cmake --build . --config Release
-          cd ..
-          test
         shell: bash
 
       - name: Export SwInE Binary
