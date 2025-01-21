@@ -24,9 +24,9 @@ jobs:
           out-file-path: 'z3'
           extract: true
       - run: |
-          sudo mkdir -p /usr/local/lib
+          mkdir -p ./build/release
           sudo mkdir -p /usr/local/include
-          sudo mv ./z3/z3-4.13.4-arm64-osx-13.7.1/bin/libz3.dylib /usr/local/lib/
+          sudo mv ./z3/z3-4.13.4-arm64-osx-13.7.1/bin/libz3.dylib ./build/release/
           sudo mv ./z3/z3-4.13.4-arm64-osx-13.7.1/include/* /usr/local/include/
         shell: bash
 
@@ -37,6 +37,8 @@ jobs:
           boost_version: 1.87.0
 
       - run: |
+          export C_INCLUDE_PATH=/usr/local/include
+          export CPLUS_INCLUDE_PATH=/usr/local/include
           test() {
             ret=`./swine-z3 ../../examples/ex0.smt2`
             echo $ret
@@ -45,13 +47,8 @@ jobs:
                 return 1
             fi
           }
-          sudo mv ${{github.workspace}}/boost/boost/lib/* /usr/local/lib/
+          sudo mv ${{github.workspace}}/boost/boost/lib/* ./build/release/
           sudo mv ${{github.workspace}}/boost/boost/include/* /usr/local/include/
-          export C_INCLUDE_PATH=/usr/local/include
-          export CPLUS_INCLUDE_PATH=/usr/local/include
-          export LIBRARY_PATH=/usr/local/lib
-          export LD_LIBRARY_PATH=/usr/local/lib
-          mkdir -p ./build/release
           cd ./build/release
           cmake -DCMAKE_BUILD_TYPE=Release ../../
           make
