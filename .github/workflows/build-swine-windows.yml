@@ -26,7 +26,7 @@ jobs:
       - run: |
           mkdir -p ./build
           mkdir -p ./include
-          mv ./z3/z3-4.13.4-x64-win/bin/libz3.dll ./build/
+          mv ./z3/z3-4.13.4-x64-win/bin/libz3.lib ./build/
           mv ./z3/z3-4.13.4-x64-win/include/* ./include/
         shell: bash
 
