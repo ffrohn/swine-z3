@@ -87,7 +87,7 @@ target_sources(${EXECUTABLE} PRIVATE
 if (${STATIC})
     add_library(libswine-z3 STATIC $<TARGET_OBJECTS:objlib>)
 else()
-    add_library(libswine-z3 SHARED IMPORTED GLOBAL $<TARGET_OBJECTS:objlib>)
+    add_library(libswine-z3 SHARED $<TARGET_OBJECTS:objlib>)
 endif()
 
 set_property(TARGET libswine-z3 PROPERTY OUTPUT_NAME swine-z3)
