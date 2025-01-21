@@ -45,7 +45,7 @@ jobs:
           export LD_LIBRARY_PATH=/usr/local/lib
           mkdir -p ./build/release
           cd ./build/release
-          cmake -DCMAKE_BUILD_TYPE=Release -DSTATIC ../../
+          cmake -DCMAKE_BUILD_TYPE=Release -DSTATIC=ON ../../
           make
         shell: bash
 
