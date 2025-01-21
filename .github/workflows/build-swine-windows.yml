@@ -46,7 +46,7 @@ jobs:
           cmake -DCMAKE_BUILD_TYPE=Release ..
           cmake --build . --config Release
           cd ..
-          ret=`./build/Release/swine-z3 ../examples/ex0.smt2`
+          ret=`./build/Release/swine-z3.exe ../examples/ex0.smt2`
           echo $ret
           if [[ $ret != sat* ]]
           then
@@ -59,6 +59,6 @@ jobs:
         with:
           name: swine-z3-windows-${{ github.ref_name }}
           path: |
-            ${{github.workspace}}\build\Release\swine-z3
-            ${{github.workspace}}\build\Release\libswine-z3.dll
+            ${{github.workspace}}\build\Release\swine-z3.exe
+            ${{github.workspace}}\build\Release\swine-z3.dll
 
