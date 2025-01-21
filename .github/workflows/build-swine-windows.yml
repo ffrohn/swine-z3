@@ -50,8 +50,8 @@ jobs:
           mv ./boost/boost/lib/* ./build/
           mv ./boost/boost/include/* ./include/
           cd ./build
-          cmake -DCMAKE_BUILD_TYPE=Release ../
-          make
+          cmake -DCMAKE_BUILD_TYPE=Release ..
+          cmake --build .
           cd ..
           test
         shell: bash
