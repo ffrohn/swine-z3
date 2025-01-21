@@ -35,6 +35,7 @@ jobs:
         id: install-boost
         with:
           boost_version: 1.87.0
+          toolset: msvc
 
       - run: |
           export INCLUDE=$INCLUDE:"${{github.workspace}}\include"
