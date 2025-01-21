@@ -49,15 +49,7 @@ jobs:
             fi
           }
           mv ./boost/boost/lib/* ./build/
-          echo "./boost/boost/include/"
-          ls -lha ./boost/boost/include/
-          echo "./boost/boost/include/boost"
-          ls -lha ./boost/boost/include/boost
-          echo "./boost/boost/include/boost/boost"
-          ls -lha ./boost/boost/include/boost/boost
-          echo "./boost/boost/include/boost/boost-1_87"
-          ls -lha ./boost/boost/include/boost/boost-1_87
-          mv ./boost/boost/include/* ./include/
+          mv ./boost/boost/include/boost/boost ./include/boost/
           cd ./build
           cmake -DCMAKE_BUILD_TYPE=Release ..
           cmake --build .
