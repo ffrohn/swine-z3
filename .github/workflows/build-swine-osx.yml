@@ -38,7 +38,8 @@ jobs:
 
       - run: |
           test() {
-            ret=`./build/release/swine-z3 ./examples/ex0.smt2`
+            ret=`./swine-z3 ../../examples/ex0.smt2`
+            echo $ret
             if [[ $ret != sat* ]]
             then
                 return 1
