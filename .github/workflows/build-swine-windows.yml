@@ -1,0 +1,67 @@
+name: Build SwInE Windows
+
+on:
+
+  # Also allow this action to be triggered manually via a button in
+  # the GitHub UI.
+  workflow_dispatch:
+
+  workflow_call:
+
+jobs:
+  build-binary:
+    runs-on: windows-latest
+    steps:
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - uses: robinraju/release-downloader@v1
+        with:
+          repository: 'Z3Prover/z3'
+          tag: z3-4.13.4
+          fileName:  z3-4.13.4-x64-win.zip
+          out-file-path: 'z3'
+          extract: true
+      - run: |
+          mkdir -p ${{github.workspace}}/build
+          sudo mkdir -p /usr/local/include
+          sudo mv ./z3/z3-4.13.4-x64-win/bin/libz3.dll ${{github.workspace}}/build/
+          sudo mv ./z3/z3-4.13.4-x64-win/include/* /usr/local/include/
+        shell: bash
+
+      - name: Install boost
+        uses: MarkusJx/install-boost@v2
+        id: install-boost
+        with:
+          boost_version: 1.87.0
+
+      - run: |
+          export C_INCLUDE_PATH=/usr/local/include
+          export CPLUS_INCLUDE_PATH=/usr/local/include
+          export LD_LIBRARY_PATH=${{github.workspace}}/build
+          export LIBRARY_PATH=${{github.workspace}}/build
+          test() {
+            ret=`./swine-z3 ../examples/ex0.smt2`
+            echo $ret
+            if [[ $ret != sat* ]]
+            then
+                return 1
+            fi
+          }
+          sudo mv ${{github.workspace}}/boost/boost/lib/* ${{github.workspace}}/build/
+          sudo mv ${{github.workspace}}/boost/boost/include/* /usr/local/include/
+          cd ${{github.workspace}}/build
+          cmake -DCMAKE_BUILD_TYPE=Release ../
+          make
+          test
+        shell: bash
+
+      - name: Export SwInE Binary
+        uses: actions/upload-artifact@master
+        with:
+          name: swine-z3-windows-${{ github.ref_name }}
+          path: |
+            ${{github.workspace}}/build/swine-z3
+            ${{github.workspace}}/build/libswine-z3.dylib
+
