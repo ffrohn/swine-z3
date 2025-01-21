@@ -62,6 +62,6 @@ jobs:
         with:
           name: swine-z3-windows-${{ github.ref_name }}
           path: |
-            ${{github.workspace}}\build\swine-z3
-            ${{github.workspace}}\build\libswine-z3.dll
+            ${{github.workspace}}\build\Release\swine-z3
+            ${{github.workspace}}\build\Release\libswine-z3.dll
 
