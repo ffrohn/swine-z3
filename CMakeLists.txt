@@ -97,3 +97,7 @@ include_directories(${INCLUDE_DIRS})
 target_link_libraries(${EXECUTABLE}
     ${Z3}
 )
+
+target_link_libraries(libswine-z3
+    ${Z3}
+)
