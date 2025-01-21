@@ -25,7 +25,9 @@ endif()
 set(INCLUDE_DIRS
   "${PROJECT_SOURCE_DIR}/include")
 
-add_compile_options(-Wall -Wextra -pedantic -Wno-unused-parameter)
+if (UNIX)
+   add_compile_options(-Wall -Wextra -pedantic -Wno-unused-parameter)
+endif()
 
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELEASE} -g")
 
