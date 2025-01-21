@@ -46,9 +46,8 @@ jobs:
           cmake -DCMAKE_BUILD_TYPE=Release ..
           cmake --build . --config Release
           cd ..
-          echo "examples"
-          ls ./examples
-          ./build/Release/swine-z3.exe ./examples/ex0.smt2
+          ls ./build/Release/swine-z3.exe
+          ./build/Release/swine-z3.exe --help
         shell: bash
 
       - name: Export SwInE Binary
@@ -58,4 +57,5 @@ jobs:
           path: |
             ${{github.workspace}}\build\Release\swine-z3.exe
             ${{github.workspace}}\build\Release\swine-z3.dll
+            ${{github.workspace}}\build\Release\swine-z3.lib
 
