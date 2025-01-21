@@ -40,19 +40,18 @@ jobs:
       - run: |
           export INCLUDE=$INCLUDE:"${{github.workspace}}\include"
           export PATH=$PATH:"${{github.workspace}}\build"
-          test() {
-            ret=`./build/Release/swine-z3 ../examples/ex0.smt2`
-            echo $ret
-            if [[ $ret != sat* ]]
-            then
-                return 1
-            fi
-          }
           mv ./boost/boost/lib/* ./build/
           mv ./boost/boost/include/boost/boost ./include/boost/
           cd ./build
           cmake -DCMAKE_BUILD_TYPE=Release ..
           cmake --build . --config Release
+          cd ..
+          ret=`./build/Release/swine-z3 ../examples/ex0.smt2`
+          echo $ret
+          if [[ $ret != sat* ]]
+          then
+              false
+          fi
         shell: bash
 
       - name: Export SwInE Binary
