@@ -27,6 +27,7 @@ jobs:
           mkdir -p ./build
           mkdir -p ./include
           mv ./z3/z3-4.13.4-x64-win/bin/libz3.lib ./build/
+          mv ./z3/z3-4.13.4-x64-win/bin/libz3.dll ./build/
           mv ./z3/z3-4.13.4-x64-win/include/* ./include/
         shell: bash
 
@@ -46,7 +47,6 @@ jobs:
           cmake -DCMAKE_BUILD_TYPE=Release ..
           cmake --build . --config Release
           cd ..
-          ls ./build/Release/swine-z3.exe
           ./build/Release/swine-z3.exe --help
         shell: bash
 
