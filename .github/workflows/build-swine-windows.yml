@@ -41,7 +41,7 @@ jobs:
           export INCLUDE=$INCLUDE:"${{github.workspace}}\include"
           export PATH=$PATH:"${{github.workspace}}\build"
           test() {
-            ret=`./swine-z3 ../examples/ex0.smt2`
+            ret=`./Release/swine-z3 ../examples/ex0.smt2`
             echo $ret
             if [[ $ret != sat* ]]
             then
@@ -52,7 +52,7 @@ jobs:
           mv ./boost/boost/include/boost/boost ./include/boost/
           cd ./build
           cmake -DCMAKE_BUILD_TYPE=Release ..
-          cmake --build .
+          cmake --build . --config Release
           cd ..
           test
         shell: bash
