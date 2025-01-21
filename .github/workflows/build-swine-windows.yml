@@ -24,10 +24,10 @@ jobs:
           out-file-path: 'z3'
           extract: true
       - run: |
-          mkdir -p ${{github.workspace}}/build
-          mkdir -p /usr/local/include
-          mv ./z3/z3-4.13.4-x64-win/bin/libz3.dll ${{github.workspace}}/build/
-          mv ./z3/z3-4.13.4-x64-win/include/* /usr/local/include/
+          mkdir -p ./build
+          mkdir -p ./include
+          mv ./z3/z3-4.13.4-x64-win/bin/libz3.dll ./build/
+          mv ./z3/z3-4.13.4-x64-win/include/* ./include/
         shell: bash
 
       - name: Install boost
@@ -37,10 +37,8 @@ jobs:
           boost_version: 1.87.0
 
       - run: |
-          export C_INCLUDE_PATH=/usr/local/include
-          export CPLUS_INCLUDE_PATH=/usr/local/include
-          export LD_LIBRARY_PATH=${{github.workspace}}/build
-          export LIBRARY_PATH=${{github.workspace}}/build
+          export INCLUDE=$INCLUDE:"${{github.workspace}}\include"
+          export PATH=$PATH:"${{github.workspace}}\build"
           test() {
             ret=`./swine-z3 ../examples/ex0.smt2`
             echo $ret
@@ -49,11 +47,12 @@ jobs:
                 return 1
             fi
           }
-          mv ${{github.workspace}}/boost/boost/lib/* ${{github.workspace}}/build/
-          mv ${{github.workspace}}/boost/boost/include/* /usr/local/include/
-          cd ${{github.workspace}}/build
+          mv ./boost/boost/lib/* ./build/
+          mv ./boost/boost/include/* ./include/
+          cd ./build
           cmake -DCMAKE_BUILD_TYPE=Release ../
           make
+          cd ..
           test
         shell: bash
 
@@ -62,6 +61,6 @@ jobs:
         with:
           name: swine-z3-windows-${{ github.ref_name }}
           path: |
-            ${{github.workspace}}/build/swine-z3
-            ${{github.workspace}}/build/libswine-z3.dylib
+            ${{github.workspace}}\build\swine-z3
+            ${{github.workspace}}\build\libswine-z3.dll
 
