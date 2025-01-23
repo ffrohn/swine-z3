@@ -24,6 +24,7 @@ jobs:
   download-builds:
     needs: [build-linux, build-linux-static, build-osx, build-windows]
     steps:
+      - runs-on: ubuntu-latest
       - name: download builds
         uses: actions/download-artifact@v4
 
