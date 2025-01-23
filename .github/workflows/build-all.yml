@@ -29,11 +29,11 @@ jobs:
 
       - uses: pyTooling/Actions/releaser@r0
         with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        tag: nightly
-        rm: true
-        files: |
-          swine-z3-linux-master.zip
-          swine-z3-linux-static-master.zip
-          swine-z3-macos-master.zip
-          swine-z3-windows-master.zip
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: nightly
+          rm: true
+          files: |
+            swine-z3-linux-master.zip
+            swine-z3-linux-static-master.zip
+            swine-z3-macos-master.zip
+            swine-z3-windows-master.zip
