@@ -1,3 +1,5 @@
+![Nightly Build](https://github.com/ffrohn/swine-z3/actions/workflows/build-all.yml/badge.svg)
+
 # SwInE -- SMT with Integer Exponentiation
 
 SwInE is an SMT solver with support for integer exponentitaion.
