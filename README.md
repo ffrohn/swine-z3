@@ -14,22 +14,9 @@ Hence, it is more efficient and robust than the original implementation, but the
 
 See ``swine-z3 --help``.
 
-# Build (Linux only)
+# Build
 
-For the impatient: install [Docker Compose](https://docs.docker.com/compose/) and run ``scripts/build.sh``
-
-To obtain a portable binary, we statically link against [musl-libc](https://www.musl-libc.org/).
-As most Linux distributions are based on glibc instead, SwInE is built in a docker container, by default.
-To this end, we provide two Dockerfiles:
-
-* ``docker/z3.Dockerfile`` for building a statically linked version of Z3
-* ``docker/Dockerfile`` for building a statically linked version of SwInE
-
-Then ``docker/docker-compose.yml`` ensures that Z3 is built before SwInE, and that the container for building SwInE has access to the clone of the SwInE repository on your local file system.
-Finally, ``scripts/build.sh`` invokes ``docker compose`` with the appropriate arguments to trigger the build.
-If the build succeeds, a binary ``swine-z3`` and a static library ``libswine-z3.a`` will be available in the root directory of your clone of the SwInE repository, afterwards.
-
-The script ``scripts/configure_and_build.sh`` is just invoked within the docker container for building SwInE, you should not invoke it directly.
+Please check our [workflow files](https://github.com/ffrohn/swine-z3/tree/master/.github/workflows) to see how to build SwInE on all major platforms.
 
 # Development
 
