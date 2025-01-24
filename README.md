@@ -1,8 +1,4 @@
 ![Nightly Build](https://github.com/ffrohn/swine-z3/actions/workflows/build-all.yml/badge.svg)
-![Linux Build](https://github.com/ffrohn/swine-z3/actions/workflows/build-linux.yml/badge.svg)
-![Static Linux Build](https://github.com/ffrohn/swine-z3/actions/workflows/build-linux-static.yml/badge.svg)
-![macOS Build](https://github.com/ffrohn/swine-z3/actions/workflows/build-osx.yml/badge.svg)
-![Windows Build](https://github.com/ffrohn/swine-z3/actions/workflows/build-windows.yml/badge.svg)
 
 # SwInE -- SMT with Integer Exponentiation
 
