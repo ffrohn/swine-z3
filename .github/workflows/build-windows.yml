@@ -61,7 +61,7 @@ jobs:
       - name: Export SwInE Binary
         uses: actions/upload-artifact@master
         with:
-          name: swine-z3-windows-${{ github.ref_name }}
+          name: swine-z3-windows-${{ github.sha }}
           path: |
             ${{github.workspace}}\build\Release\swine-z3.exe
             ${{github.workspace}}\build\Release\swine-z3.dll

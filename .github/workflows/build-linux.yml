@@ -37,7 +37,7 @@ jobs:
       - name: Export SwInE Binary
         uses: actions/upload-artifact@master
         with:
-          name: swine-z3-linux-${{ github.ref_name }}
+          name: swine-z3-linux-${{ github.sha }}
           path: |
             build/release/swine-z3
             build/release/libswine-z3.so

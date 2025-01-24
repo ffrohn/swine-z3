@@ -60,7 +60,7 @@ jobs:
       - name: Export SwInE Binary
         uses: actions/upload-artifact@master
         with:
-          name: swine-z3-macos-${{ github.ref_name }}
+          name: swine-z3-macos-${{ github.sha }}
           path: |
             ${{github.workspace}}/build/swine-z3
             ${{github.workspace}}/build/libswine-z3.dylib

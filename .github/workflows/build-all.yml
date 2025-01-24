@@ -30,10 +30,10 @@ jobs:
         uses: actions/download-artifact@v4
 
       - run: |
-          zip -r swine-z3-linux-master.zip swine-z3-linux-master
-          zip -r swine-z3-linux-static-master.zip swine-z3-linux-static-master
-          zip -r swine-z3-macos-master.zip swine-z3-macos-master
-          zip -r swine-z3-windows-master.zip swine-z3-windows-master
+          zip -r swine-z3-linux-${{ github.sha }}.zip swine-z3-linux-${{ github.sha }}
+          zip -r swine-z3-linux-static-${{ github.sha }}.zip swine-z3-linux-static-${{ github.sha }}
+          zip -r swine-z3-macos-${{ github.sha }}.zip swine-z3-macos-${{ github.sha }}
+          zip -r swine-z3-windows-${{ github.sha }}.zip swine-z3-windows-${{ github.sha }}
         shell: bash
 
       - uses: pyTooling/Actions/releaser@r0
