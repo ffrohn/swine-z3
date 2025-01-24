@@ -79,6 +79,8 @@ set (SOURCES
     "${PROJECT_SOURCE_DIR}/src/preproc_kind.cpp"
     "${PROJECT_SOURCE_DIR}/include/config.h"
     "${PROJECT_SOURCE_DIR}/src/config.cpp"
+    "${PROJECT_SOURCE_DIR}/include/version.h"
+    "${PROJECT_SOURCE_DIR}/src/version.cpp"
 )
 
 add_library(objlib OBJECT ${SOURCES})
@@ -86,8 +88,6 @@ add_library(objlib OBJECT ${SOURCES})
 target_sources(${EXECUTABLE} PRIVATE
     $<TARGET_OBJECTS:objlib>
     "${PROJECT_SOURCE_DIR}/src/main.cpp"
-    "${PROJECT_SOURCE_DIR}/include/version.h"
-    "${PROJECT_SOURCE_DIR}/src/version.cpp"
 )
 
 if (${STATIC})

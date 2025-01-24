@@ -516,7 +516,7 @@ void Swine::prime_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas) {
                 continue;
             }
             int inc[8] {4, 2, 4, 2, 4, 6, 2, 6};
-            boost::multiprecision::cpp_int d{7};
+            cpp_int d{7};
             auto i{0};
             while (d * d <= val) {
                 process_divisor(d);
@@ -534,7 +534,7 @@ void Swine::prime_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas) {
 
 void Swine::add_bounds() {
     std::unordered_set<unsigned int> seen;
-    const auto b {util->term(boost::multiprecision::pow(boost::multiprecision::cpp_int(2), bound))};
+    const auto b {util->term(pow(cpp_int(2), bound))};
     for (const auto &f: frames) {
         for (const auto &g: f.exp_groups) {
             for (const auto &e: g->all()) {
