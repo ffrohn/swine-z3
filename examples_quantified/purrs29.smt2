@@ -1,11 +1,12 @@
-; x(n) = x(n-2)
-; Solution: x(n) = 1/2 * x(0) * (1 + (-1)^n) + 1/2 * x(1) * (1 - (-1)^n) 
+; parametric
+; x(n) = x(n-1) + b / (n*(n+1)) + 3*2^n + 4
+; Solution: x(n) = -6+b*(1+n)^(-1)*n+6*2^n+x(0)+4*n
 
 (set-logic ALL)
 (set-option :produce-models true)
 (declare-fun x0 () Int)
-(declare-fun x1 () Int)
 (declare-fun n () Int)
+(declare-fun b () Int)
 
 (declare-fun iexp (Int Int) Int)
 (assert (forall ((b Int)) (= (iexp b 0) 1)))
@@ -14,14 +15,8 @@
 
 (assert (> n 1))
 (assert (distinct
-  (+
-    (* (/ 1 2) x0 (+ 1 (iexp (- 1) n)))
-    (* (/ 1 2) x1 (- 1 (iexp (- 1) n)))
-  )
-  (+
-    (* (/ 1 2) x0 (+ 1 (iexp (- 1) (- n 2))))
-    (* (/ 1 2) x1 (- 1 (iexp (- 1) (- n 2))))
-  )
+  (+ (- 6) (* b (/ 1 (+ 1 n)) n) (* 6 (iexp 2 n)) x0 (* 4 n))
+  (+ (+ (- 6) (* b (/ 1 n) (- n 1)) (* 6 (iexp 2 (- n 1))) x0 (* 4 (- n 1))) (/ b (* n (+ n 1))) (* 3 (iexp 2 n)) 4)
 ))
 
 (check-sat)
