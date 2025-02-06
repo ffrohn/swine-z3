@@ -26,7 +26,7 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
           # Build binary inside the latest pushed base image:
-          image: loat/swine-base:b8e7827c
+          image: loat/swine-base:fdda2328
           options: -v ${{ github.workspace }}:/SwInE
 #          shell: bash
           run: |
