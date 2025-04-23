@@ -140,7 +140,9 @@ int main(int argc, char *argv[]) {
     const auto res {swine.check()};
     std::cout << res << std::endl;
     if (res == z3::sat) {
-        std::cout << swine.get_model() << std::endl;
+        std::cout << "(\n";
+        std::cout << swine.get_model() << '\n';
+        std::cout << ')' << std::endl;
     }
     if (show_version) {
         version();
