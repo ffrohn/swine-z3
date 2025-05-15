@@ -34,6 +34,7 @@ std::ostream& operator<<(std::ostream &s, const Swine::Statistics &stats) {
     s << "bounding lemmas      : " << stats.bounding_lemmas << std::endl;
     s << "monotonicity lemmas  : " << stats.monotonicity_lemmas << std::endl;
     s << "induction lemmas     : " << stats.induction_lemmas << std::endl;
+    s << "prime lemmas         : " << stats.prime_lemmas << std::endl;
     s << "interpolation lemmas : " << stats.interpolation_lemmas << std::endl;
     s << "non constant base    : " << (stats.non_constant_base ? "true" : "false") << std::endl;
     return s;
