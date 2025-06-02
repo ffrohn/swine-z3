@@ -32,7 +32,7 @@ private:
         std::unordered_map<unsigned, LemmaKind> lemma_kinds;
         std::unordered_map<unsigned, z3::expr> lemmas;
         std::unordered_map<unsigned, z3::expr_vector> bounding_lemmas;
-        bool assert_failed {false};
+        std::optional<std::string> assert_failed {};
 
         Frame(z3::context &ctx);
 
@@ -87,6 +87,7 @@ private:
     bool sat_mode {true};
     long long bound {2};
     z3::model model;
+    std::string reason_unknown {};
 
     friend std::ostream& operator<<(std::ostream &s, const Swine &swine);
 
@@ -123,6 +124,7 @@ public:
     void push();
     void pop();
     z3::model get_model() const;
+    std::string get_reason_unknown() const;
     void reset();
     z3::context& get_ctx();
     z3::func_decl& get_exp();

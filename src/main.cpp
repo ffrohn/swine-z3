@@ -139,10 +139,20 @@ int main(int argc, char *argv[]) {
     Z3_ast_vector_dec_ref(ctx, v);
     const auto res {swine.check()};
     std::cout << res << std::endl;
-    if (res == z3::sat) {
-        std::cout << "(\n";
-        std::cout << swine.get_model() << '\n';
-        std::cout << ')' << std::endl;
+    switch (res) {
+        case z3::sat: {
+            std::cout << "(\n";
+            std::cout << swine.get_model() << '\n';
+            std::cout << ')' << std::endl;
+            break;
+        }
+        case z3::unknown: {
+            std::cout << "(:reason-unknown " << swine.get_reason_unknown() << ")" << std::endl;
+            break;
+        }
+        default: {
+            break;
+        }
     }
     if (show_version) {
         version();

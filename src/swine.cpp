@@ -239,7 +239,7 @@ void Swine::add(const z3::expr &t) {
             }
         }
     } catch (const ExponentOverflow &e) {
-        frames.back().assert_failed = true;
+        frames.back().assert_failed = "exponent-overflow";
     }
 }
 
@@ -564,6 +564,7 @@ std::vector<std::pair<z3::expr, LemmaKind>> Swine::preprocess_lemmas(const std::
 z3::check_result Swine::check(z3::expr_vector assumptions) {
     for (const auto &f: frames) {
         if (f.assert_failed) {
+            reason_unknown = *f.assert_failed;
             return z3::unknown;
         }
     }
@@ -625,7 +626,8 @@ z3::check_result Swine::check(z3::expr_vector assumptions) {
                 if (config.log) {
                     std::cout << "unknown from z3" << std::endl;
                 }
-                break;
+                reason_unknown = "(z3-unknown " + solver.reason_unknown() + ")";
+                return z3::unknown;
             } else if (res == z3::sat) {
                 if (config.toggle_mode && !sat_mode) {
                     sat_mode = true;
@@ -695,9 +697,10 @@ z3::check_result Swine::check(z3::expr_vector assumptions) {
                     lemmas = preprocess_lemmas(lemmas);
                 }
                 if (lemmas.empty()) {
-                    if (config.is_active(LemmaKind::Interpolation)) {
-                        throw std::logic_error("refinement failed, but interpolation is enabled");
+                    if (config.is_active(LemmaKind::Interpolation) && config.is_active(LemmaKind::Bounding) && config.is_active(LemmaKind::Symmetry)) {
+                        throw std::logic_error("refinement failed, but interpolation, bounding, and symmetry lemmas are enabled");
                     } else {
+                        reason_unknown = "failed-refinement";
                         return z3::unknown;
                     }
                 }
@@ -706,6 +709,7 @@ z3::check_result Swine::check(z3::expr_vector assumptions) {
                 }
             }
         } catch (const ExponentOverflow &e) {
+            reason_unknown = "exponent-overflow";
             return z3::unknown;
         }
     }
@@ -801,6 +805,10 @@ z3::solver& Swine::get_solver() {
 
 z3::model Swine::get_model() const {
     return solver.get_model();
+}
+
+std::string Swine::get_reason_unknown() const {
+    return reason_unknown;
 }
 
 }
