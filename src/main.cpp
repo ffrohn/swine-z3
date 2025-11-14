@@ -11,6 +11,7 @@ using namespace swine;
 
 void version() {
     std::cout << "Build SHA: " << Version::GIT_SHA << " (" << Version::GIT_DIRTY << ")" << std::endl;
+    std::cout << "Z3 version: " << Z3_get_full_version() << std::endl;
 }
 
 void argument_parsing_failed(const std::string &str) {
