@@ -19,15 +19,15 @@ jobs:
       - uses: robinraju/release-downloader@v1
         with:
           repository: 'Z3Prover/z3'
-          tag: z3-4.13.4
-          fileName: z3-4.13.4-arm64-osx-13.7.1.zip
+          tag: z3-4.15.4
+          fileName: z3-4.15.4-arm64-osx-13.7.1.zip
           out-file-path: 'z3'
           extract: true
       - run: |
           mkdir -p ${{github.workspace}}/build
           sudo mkdir -p /usr/local/include
-          sudo mv ./z3/z3-4.13.4-arm64-osx-13.7.1/bin/libz3.dylib ${{github.workspace}}/build/
-          sudo mv ./z3/z3-4.13.4-arm64-osx-13.7.1/include/* /usr/local/include/
+          sudo mv ./z3/z3-4.15.4-arm64-osx-13.7.1/bin/libz3.dylib ${{github.workspace}}/build/
+          sudo mv ./z3/z3-4.15.4-arm64-osx-13.7.1/include/* /usr/local/include/
         shell: bash
 
       - name: Install boost

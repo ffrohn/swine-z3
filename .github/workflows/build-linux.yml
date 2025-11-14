@@ -19,15 +19,15 @@ jobs:
       - uses: robinraju/release-downloader@v1
         with:
           repository: 'Z3Prover/z3'
-          tag: z3-4.13.4
-          fileName: z3-4.13.4-x64-glibc-2.35.zip
+          tag: z3-4.15.4
+          fileName: z3-4.15.4-x64-glibc-2.35.zip
           out-file-path: 'z3'
           extract: true
 
       - run: |
           sudo apt -y install libboost-dev
-          sudo mv ./z3/z3-4.13.4-x64-glibc-2.35/bin/libz3.so /usr/local/lib/
-          sudo mv ./z3/z3-4.13.4-x64-glibc-2.35/include/* /usr/local/include/
+          sudo mv ./z3/z3-4.15.4-x64-glibc-2.35/bin/libz3.so /usr/local/lib/
+          sudo mv ./z3/z3-4.15.4-x64-glibc-2.35/include/* /usr/local/include/
           mkdir -p ./build/release
           cd ./build/release
           cmake -DCMAKE_BUILD_TYPE=Release ../../
