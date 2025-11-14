@@ -4,6 +4,8 @@
 
 namespace swine {
 
+class ExpInQuantifierException final : public std::exception {};
+
 class ExpGroup {
 
     const z3::expr t;
@@ -29,7 +31,7 @@ public:
 
     Util &util;
 
-    void find_exps(const z3::expr &term, z3::expr_vector &res);
+    bool find_exps(const z3::expr &term, z3::expr_vector &res);
 
 public:
 

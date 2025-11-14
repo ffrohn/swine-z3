@@ -7,6 +7,9 @@ ConstantPropagator::ConstantPropagator(Util &util): util(util) {}
 z3::expr ConstantPropagator::propagate(const z3::expr &expression) const {
     const auto zero {util.ctx.int_val(0)};
     const auto one {util.ctx.int_val(1)};
+    if (expression.is_lambda() || expression.is_quantifier()) {
+        return expression;
+    }
     if (expression.num_args() == 0) {
         return expression;
     } else {

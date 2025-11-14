@@ -230,13 +230,17 @@ void Swine::add(const z3::expr &t) {
             frames.back().preprocessed_assertions.emplace_back(preprocessed, t);
         }
         solver.add(preprocessed);
-        for (const auto &g: exp_finder->find_exps(preprocessed)) {
-            if (frames.back().exp_ids.emplace(g.orig().id()).second) {
-                frames.back().exps.push_back(g.orig());
-                frames.back().exp_groups.emplace_back(std::make_shared<ExpGroup>(g));
-                stats.non_constant_base |= !g.has_ground_base();
-                compute_bounding_lemmas(g);
+        try {
+            for (const auto &g: exp_finder->find_exps(preprocessed)) {
+                if (frames.back().exp_ids.emplace(g.orig().id()).second) {
+                    frames.back().exps.push_back(g.orig());
+                    frames.back().exp_groups.emplace_back(std::make_shared<ExpGroup>(g));
+                    stats.non_constant_base |= !g.has_ground_base();
+                    compute_bounding_lemmas(g);
+                }
             }
+        } catch (const ExpInQuantifierException&) {
+            frames.back().assert_failed = "exp in quantifier";
         }
     } catch (const ExponentOverflow &e) {
         frames.back().assert_failed = "exponent-overflow";

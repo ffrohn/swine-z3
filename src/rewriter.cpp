@@ -9,6 +9,9 @@ z3::expr Rewriter::rewrite(const z3::expr &t) {
     const auto one {util.ctx.int_val(1)};
     const auto mone {util.ctx.int_val(-1)};
     std::optional<z3::expr> res;
+    if (t.is_lambda() || t.is_quantifier()) {
+        return t;
+    }
     if (t.num_args() == 0) {
         return t;
     } else {

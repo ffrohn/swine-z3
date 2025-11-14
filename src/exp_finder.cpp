@@ -43,15 +43,28 @@ z3::expr ExpGroup::orig() const {
 
 ExpFinder::ExpFinder(Util &util): util(util) {}
 
-void ExpFinder::find_exps(const z3::expr &term, z3::expr_vector &res) {
+bool ExpFinder::find_exps(const z3::expr &term, z3::expr_vector &res) {
+    if (term.is_lambda() || term.is_quantifier()) {
+        const auto ret = find_exps(term.body(), res);
+        if (ret) {
+            throw ExpInQuantifierException();
+        }
+        return ret;
+    }
+    if (term.is_var()) {
+        return false;
+    }
+    auto ret = false;
     if (term.num_args() > 0) {
         for (auto c: term.args()) {
-            find_exps(c, res);
+            ret |= find_exps(c, res);
         }
         if (util.is_abstract_exp(term)) {
             res.push_back(term);
+            return true;
         }
     }
+    return ret;
 }
 
 std::vector<ExpGroup> ExpFinder::find_exps(const z3::expr &term) {
