@@ -11,15 +11,11 @@ namespace swine {
 
 class Util;
 
-std::ostream& operator<<(std::ostream &s, const LemmaKind kind);
-
 class ExpGroup;
 class Preprocessor;
 class ExpFinder;
 
 class Swine {
-
-private:
 
     struct Frame {
         z3::expr_vector exps;
@@ -34,7 +30,7 @@ private:
         std::unordered_map<unsigned, z3::expr_vector> bounding_lemmas;
         std::optional<std::string> assert_failed {};
 
-        Frame(z3::context &ctx);
+        explicit Frame(z3::context &ctx);
 
     };
 
@@ -45,9 +41,9 @@ private:
         z3::expr base;
         boost::multiprecision::cpp_int base_val;
         z3::expr exponent;
-        long long exponent_val;
+        long long exponent_val = 0;
 
-        EvaluatedExponential(const z3::expr &exp_expression);
+        explicit EvaluatedExponential(const z3::expr &exp_expression);
 
     };
 
@@ -65,13 +61,13 @@ private:
         bool non_constant_base {false};
     };
 
-    friend std::ostream& operator<<(std::ostream &s, const Swine::Statistics &stats);
+    friend std::ostream& operator<<(std::ostream &s, const Statistics &stats);
 
     struct Interpolant {
         z3::expr t;
         boost::multiprecision::cpp_int factor;
 
-        Interpolant(const z3::expr &t);
+        explicit Interpolant(z3::expr t);
 
     };
 
@@ -92,26 +88,25 @@ private:
     friend std::ostream& operator<<(std::ostream &s, const Swine &swine);
 
     z3::check_result check(z3::expr_vector assumptions);
-    void base_symmetry_lemmas(const z3::expr &e, z3::expr_vector &lemmas);
-    void exp_symmetry_lemmas(const z3::expr &e, z3::expr_vector &lemmas);
-    void symmetry_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas);
+    void base_symmetry_lemmas(const z3::expr &e, z3::expr_vector &lemmas) const;
+    void exp_symmetry_lemmas(const z3::expr &e, z3::expr_vector &lemmas) const;
+    void symmetry_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas) const;
     void compute_bounding_lemmas(const ExpGroup &g);
-    void bounding_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas);
+    void bounding_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas) const;
     EvaluatedExponential evaluate_exponential(const z3::expr &exp_expression) const;
-    Interpolant interpolate(const z3::expr &t, const unsigned pos, const boost::multiprecision::cpp_int x1, const boost::multiprecision::cpp_int x2);
-    z3::expr interpolation_lemma(const z3::expr &t, const bool upper, const std::pair<boost::multiprecision::cpp_int, long long> a, const std::pair<boost::multiprecision::cpp_int, long long> bx2);
+    Interpolant interpolate(const z3::expr &t, unsigned pos, const boost::multiprecision::cpp_int& x1, const boost::multiprecision::cpp_int& x2) const;
+    z3::expr interpolation_lemma(const z3::expr &t, bool upper, const std::pair<boost::multiprecision::cpp_int, long long>& a, const std::pair<boost::multiprecision::cpp_int, long long>& b) const;
     void interpolation_lemma(const EvaluatedExponential &e, std::vector<std::pair<z3::expr, LemmaKind>> &lemmas);
     void interpolation_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas);
-    z3::expr_vector tangent_refinement(const z3::expr &exponent1, const z3::expr &exponent2, const z3::expr &expected1, const z3::expr &expected2);
-    std::optional<z3::expr> induction_lemma(EvaluatedExponential e1, EvaluatedExponential e2);
-    void induction_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas);
-    std::optional<z3::expr> monotonicity_lemma(const EvaluatedExponential &e1, const EvaluatedExponential &e2);
-    void monotonicity_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas);
+    std::optional<z3::expr> induction_lemma(EvaluatedExponential e1, EvaluatedExponential e2) const;
+    void induction_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas) const;
+    std::optional<z3::expr> monotonicity_lemma(const EvaluatedExponential &e1, const EvaluatedExponential &e2) const;
+    void monotonicity_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas) const;
     void prime_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas);
     void verify() const;
-    void brute_force();
-    void add_lemma(const z3::expr &lemma, const LemmaKind kind);
-    std::vector<std::pair<z3::expr, LemmaKind>> preprocess_lemmas(const std::vector<std::pair<z3::expr, LemmaKind>> &lemmas);
+    void brute_force() const;
+    void add_lemma(const z3::expr &t, LemmaKind kind);
+    std::vector<std::pair<z3::expr, LemmaKind>> preprocess_lemmas(const std::vector<std::pair<z3::expr, LemmaKind>> &lemmas) const;
     z3::expr get_value(const z3::expr &exp) const;
     void add_bounds();
 
@@ -126,8 +121,8 @@ public:
     z3::model get_model() const;
     std::string get_reason_unknown() const;
     void reset();
-    z3::context& get_ctx();
-    z3::func_decl& get_exp();
+    z3::context& get_ctx() const;
+    z3::func_decl& get_exp() const;
     z3::solver& get_solver();
     const z3::solver& get_solver() const;
 
