@@ -112,17 +112,19 @@ void Swine::symmetry_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas)
     for (const auto &f: frames) {
         for (const auto &e: f.exps) {
             const auto ee {evaluate_exponential(e)};
-            if (ee.base_val < 0) {
-                base_symmetry_lemmas(e, sym_lemmas);
-            }
-            if (ee.base_val == -1 && ee.exponent_val < 0) {
-                exp_symmetry_lemmas(e, sym_lemmas);
-            }
-            if (ee.base_val < 0 && ee.exponent_val < 0) {
-                const auto neg {util->make_exp(-ee.base, -ee.exponent)};
-                base_symmetry_lemmas(neg, sym_lemmas);
-                if (ee.base_val == -1) {
-                    exp_symmetry_lemmas(neg, sym_lemmas);
+            if (ee.exp_expression_val != ee.expected_val) {
+                if (ee.base_val < 0) {
+                    base_symmetry_lemmas(e, sym_lemmas);
+                }
+                if (ee.base_val == -1 && ee.exponent_val < 0) {
+                    exp_symmetry_lemmas(e, sym_lemmas);
+                }
+                if (ee.base_val < 0 && ee.exponent_val < 0) {
+                    const auto neg {util->make_exp(-ee.base, -ee.exponent)};
+                    base_symmetry_lemmas(neg, sym_lemmas);
+                    if (ee.base_val == -1) {
+                        exp_symmetry_lemmas(neg, sym_lemmas);
+                    }
                 }
             }
         }
@@ -141,8 +143,8 @@ void Swine::base_symmetry_lemmas(const z3::expr &e, z3::expr_vector &lemmas) con
     if (!util->is_value(base) || util->value(base) < 0) {
         const auto conclusion_even {e == util->make_exp(-base, exp)};
         const auto conclusion_odd {e == -util->make_exp(-base, exp)};
-        const auto premise_even {z3::mod(exp, ctx.int_val(2)) == ctx.int_val(0)};
-        const auto premise_odd {z3::mod(exp, ctx.int_val(2)) == ctx.int_val(1)};
+        const auto premise_even {z3::mod(exp, 2) == 0};
+        const auto premise_odd {z3::mod(exp, 2) == 1};
         lemmas.push_back(z3::implies(premise_even, conclusion_even));
         lemmas.push_back(z3::implies(premise_odd, conclusion_odd));
     }
@@ -170,38 +172,29 @@ void Swine::compute_bounding_lemmas(const ExpGroup &g) {
         auto &set {it->second};
         const auto base {e.arg(0)};
         const auto exp {e.arg(1)};
-        z3::expr lemma{ctx};
-        // exp < 0 && base < -1 ==> base^exp = 0
-        lemma = z3::implies(exp < ctx.int_val(0) && base < ctx.int_val(-1), e == ctx.int_val(0));
-        set.push_back(lemma);
-        // exp < 0 && base > 1 ==> base^exp = 0
-        lemma = z3::implies(exp < ctx.int_val(0) && base > ctx.int_val(1), e == ctx.int_val(0));
-        set.push_back(lemma);
-        // exp < 0 && base = 1 ==> base^exp = 1
-        lemma = z3::implies(exp < ctx.int_val(0) && base == ctx.int_val(1), e == ctx.int_val(1));
-        set.push_back(lemma);
         // exp = 0 ==> base^exp = 1
-        lemma = z3::implies(exp == ctx.int_val(0), e == ctx.int_val(1));
-        set.push_back(lemma);
+        set.push_back(z3::implies(exp == 0, e == 1));
         // exp = 1 ==> base^exp = base
-        lemma = z3::implies(exp == ctx.int_val(1), e == base);
-        set.push_back(lemma);
+        set.push_back(z3::implies(exp == 1, e == base));
+        if (!util->is_value(base) || util->value(base) < -1) {
+            // exp < 0 && base < -1 ==> base^exp = 0
+            set.push_back(z3::implies(exp < 0 && base < -1, e == 0));
+        }
         if (!util->is_value(base) || util->value(base) == 0) {
-            // base = 0 && ... ==> base^exp = 0
-            lemma = (base == ctx.int_val(0) && exp != ctx.int_val(0)) == (e == ctx.int_val(0));
-            set.push_back(lemma);
+            // base = 0 && exp != 0 ==> base^exp = 0
+            set.push_back(z3::implies(base == 0 && exp != 0, e == 0));
         }
         if (!util->is_value(base) || util->value(base) == 1) {
-            // base = 1 && ... ==> base^exp = 1
-            lemma = z3::implies(base == ctx.int_val(1), e == ctx.int_val(1));
-            set.push_back(lemma);
+            // base = 1 ==> base^exp = 1
+            set.push_back(z3::implies(base == 1, e == 1));
         }
         if (!util->is_value(base) || util->value(base) > 1) {
-            // exp + base > 4 && s > 1 && t > 1 ==> base^exp > s * t + 1
-            lemma = z3::implies(
-                base + exp > ctx.int_val(4) && base > ctx.int_val(1) && exp > ctx.int_val(1),
-                e > base * exp + ctx.int_val(1));
-            set.push_back(lemma);
+            // exp < 0 && base > 1 ==> base^exp = 0
+            set.push_back(z3::implies(exp < 0 && base > 1, e == 0));
+            // exp + base > 4 && base > 1 && exp > 1 ==> base^exp > base * exp + 1
+            set.push_back(z3::implies(
+                base + exp > 4 && base > 1 && exp > 1,
+                e > base * exp + 1));
         }
     }
 }
@@ -457,7 +450,7 @@ std::optional<z3::expr> Swine::monotonicity_lemma(const EvaluatedExponential &e1
     } else {
         premise = strict_exp_premise;
     }
-    premise = ctx.int_val(1) < smaller.base && ctx.int_val(0) < smaller.exponent && premise;
+    premise = 1 < smaller.base && 0 < smaller.exponent && premise;
     return z3::implies(premise, smaller.exp_expression < greater.exp_expression);
 }
 
@@ -557,7 +550,9 @@ void Swine::add_bounds() {
 std::vector<std::pair<z3::expr, LemmaKind>> Swine::preprocess_lemmas(const std::vector<std::pair<z3::expr, LemmaKind>> &lemmas) const {
     std::vector<std::pair<z3::expr, LemmaKind>> res;
     for (const auto &[l,k]: lemmas) {
-        if (const auto p {preproc->preprocess(l)}; get_value(p).is_false()) {
+        // lemmas *must* be preprocessed before checking the value to make sure that ground exp-subterms are interpreted
+        // according to the semantics of exp, and not according to the current model
+        if (const auto p = preproc->preprocess(l); get_value(p).is_false()) {
             res.emplace_back(p, k);
         }
     }
