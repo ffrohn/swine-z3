@@ -24,10 +24,12 @@ z3::expr Rewriter::rewrite(const z3::expr &t) {
             const auto exp {children[1]};
             if (base.id() == one.id() || exp.id() == zero.id()) {
                 res = util.term(1);
-            } else if (exp.id() == one.id() || exp.id() == mone.id()) {
+            } else if (exp.id() == one.id()) {
                 res = base;
             } else if (util.is_value(exp)) {
-                res = rewrite(z3::pw(base, exp));
+                if (const auto val = util.value(exp); val >= 0) {
+                    res = rewrite(z3::pw(base, exp));
+                }
             }
         } else if (t.decl().decl_kind() == Z3_OP_MUL) {
             std::unordered_map<unsigned, z3::expr_vector> exp_map;
