@@ -36,7 +36,6 @@ void print_help() {
         const auto ws {length - str.length()};
         std::cout << str << std::string(ws, ' ') << " : disable " << k << std::endl;
     }
-    std::cout << "  --validate-sat        : validate SAT results by evaluating the input w.r.t. solution" << std::endl;
     std::cout << "  --validate-unsat c    : validate UNSAT results by forcing exponents to values in {0,...,c}, c in IN" << std::endl;
     std::cout << "  --no-phasing          : disable phasing" << std::endl;
     std::cout << "  --get-lemmas          : print all lemmas that were used in the final proof if UNSAT is proven, or all lemmas if SAT is shown" << std::endl;
@@ -67,9 +66,7 @@ int main(int argc, char *argv[]) {
     auto show_version {true};
     try {
         while (++arg < argc) {
-            if (boost::iequals(argv[arg], "--validate-sat")) {
-                config.validate_sat = true;
-            } else if (boost::iequals(argv[arg], "--validate-unsat")) {
+            if (boost::iequals(argv[arg], "--validate-unsat")) {
                 const auto bound {std::stoi(get_next())};
                 if (bound >= 0) {
                     config.validate_unsat = bound;

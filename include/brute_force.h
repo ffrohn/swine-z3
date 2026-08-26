@@ -16,7 +16,7 @@ class BruteForce {
     std::vector<std::pair<z3::expr, unsigned long>> current;
 
     bool next();
-    bool next(const unsigned long weight, std::vector<std::pair<z3::expr, unsigned long>>::iterator begin);
+    bool next(unsigned long weight, std::vector<std::pair<z3::expr, unsigned long>>::iterator begin);
 
 public:
 

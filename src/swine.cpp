@@ -115,13 +115,15 @@ void Swine::symmetry_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas)
             if (ee.base_val < 0) {
                 base_symmetry_lemmas(e, sym_lemmas);
             }
-            if (ee.exponent_val < 0) {
+            if (ee.base_val == -1 && ee.exponent_val < 0) {
                 exp_symmetry_lemmas(e, sym_lemmas);
             }
             if (ee.base_val < 0 && ee.exponent_val < 0) {
                 const auto neg {util->make_exp(-ee.base, -ee.exponent)};
                 base_symmetry_lemmas(neg, sym_lemmas);
-                exp_symmetry_lemmas(neg, sym_lemmas);
+                if (ee.base_val == -1) {
+                    exp_symmetry_lemmas(neg, sym_lemmas);
+                }
             }
         }
     }
@@ -152,7 +154,7 @@ void Swine::exp_symmetry_lemmas(const z3::expr &e, z3::expr_vector &lemmas) cons
     }
     const auto base {e.arg(0)};
     const auto exp {e.arg(1)};
-    const auto lemma {e == util->make_exp(base, -exp)};
+    const auto lemma {z3::implies(base == -1, e == util->make_exp(base, -exp))};
     lemmas.push_back(lemma);
 }
 
@@ -160,7 +162,7 @@ void Swine::compute_bounding_lemmas(const ExpGroup &g) {
     if (!config.is_active(LemmaKind::Bounding)) {
         return;
     }
-    for (const auto &e: g.maybe_non_neg_base()) {
+    for (const auto &e: g.all()) {
         auto [it, inserted] {frames.back().bounding_lemmas.emplace(e.id(), z3::expr_vector(ctx))};
         if (!inserted) {
             return;
@@ -169,6 +171,15 @@ void Swine::compute_bounding_lemmas(const ExpGroup &g) {
         const auto base {e.arg(0)};
         const auto exp {e.arg(1)};
         z3::expr lemma{ctx};
+        // exp < 0 && base < -1 ==> base^exp = 0
+        lemma = z3::implies(exp < ctx.int_val(0) && base < ctx.int_val(-1), e == ctx.int_val(0));
+        set.push_back(lemma);
+        // exp < 0 && base > 1 ==> base^exp = 0
+        lemma = z3::implies(exp < ctx.int_val(0) && base > ctx.int_val(1), e == ctx.int_val(0));
+        set.push_back(lemma);
+        // exp < 0 && base = 1 ==> base^exp = 1
+        lemma = z3::implies(exp < ctx.int_val(0) && base == ctx.int_val(1), e == ctx.int_val(1));
+        set.push_back(lemma);
         // exp = 0 ==> base^exp = 1
         lemma = z3::implies(exp == ctx.int_val(0), e == ctx.int_val(1));
         set.push_back(lemma);
@@ -206,8 +217,8 @@ void Swine::bounding_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas)
                 continue;
             }
             seen.emplace(g->orig().id());
-            for (const auto &e: g->maybe_non_neg_base()) {
-                if (const auto ee {evaluate_exponential(e)}; ee.exp_expression_val != ee.expected_val && ee.base_val >= 0) {
+            for (const auto &e: g->all()) {
+                if (const auto ee {evaluate_exponential(e)}; ee.exp_expression_val != ee.expected_val) {
                     for (const auto &l: f.bounding_lemmas.at(e.id())) {
                         lemmas.emplace_back(l, LemmaKind::Bounding);
                     }
@@ -225,9 +236,7 @@ void Swine::add(const z3::expr &t) {
             std::cout << t << std::endl;
         }
         const auto preprocessed {preproc->preprocess(t)};
-        if (config.validate_sat || config.validate_unsat || config.get_lemmas) {
-            frames.back().preprocessed_assertions.emplace_back(preprocessed, t);
-        }
+        frames.back().preprocessed_assertions.emplace_back(preprocessed, t);
         solver.add(preprocessed);
         try {
             for (const auto &g: exp_finder->find_exps(preprocessed)) {
@@ -256,7 +265,11 @@ Swine::EvaluatedExponential Swine::evaluate_exponential(const z3::expr &exp_expr
     res.exp_expression_val = util->value(get_value(res.exp_expression));
     res.base_val = util->value(get_value(res.base));
     res.exponent_val = Util::to_int(get_value(res.exponent));
-    res.expected_val = pow(res.base_val, abs(res.exponent_val));
+    if (res.exponent_val >= 0 || abs(res.base_val) == 1) {
+        res.expected_val = pow(res.base_val, res.exponent_val);
+    } else {
+        res.expected_val = 0;
+    }
     return res;
 }
 
@@ -341,16 +354,18 @@ void Swine::interpolation_lemma(const EvaluatedExponential &e, std::vector<std::
         const auto min_exp = e.exponent_val > 1 ? e.exponent_val - 1 : e.exponent_val;
         lemma = interpolation_lemma(e.exp_expression, false, {min_base, min_exp}, {min_base + 1, min_exp + 1});
     } else {
-        std::pair<cpp_int, long long> nearest {1, 1};
-        const auto min_dist {e.base_val * e.base_val + e.exponent_val * e.exponent_val};
+        std::optional<std::pair<cpp_int, long long>> nearest;
+        std::optional<cpp_int> min_dist;
         for (const auto &[x, y]: vec) {
             const auto x_dist {x - e.base_val};
             const auto y_dist {y - e.exponent_val};
-            if (const auto dist {x_dist * x_dist + y_dist * y_dist}; 0 < dist && dist <= min_dist) {
+            if (const auto dist {x_dist * x_dist + y_dist * y_dist}; !min_dist || dist <= *min_dist) {
                 nearest = {x, y};
+                min_dist = dist;
             }
         }
-        lemma = interpolation_lemma(e.exp_expression, true, {e.base_val, e.exponent_val}, nearest);
+        const std::pair current {e.base_val, e.exponent_val};
+        lemma = interpolation_lemma(e.exp_expression, true, current, nearest.value_or(current));
     }
     vec.emplace_back(e.base_val, e.exponent_val);
     lemmas.emplace_back(lemma, LemmaKind::Interpolation);
@@ -372,16 +387,16 @@ void Swine::interpolation_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &le
 }
 
 std::optional<z3::expr> Swine::induction_lemma(EvaluatedExponential e1, EvaluatedExponential e2) const {
-    if (e1.base_val != e2.base_val || e1.exponent_val < 2 || e2.exponent_val < 2 || e1.exponent_val == e2.exponent_val) {
+    if (e1.base_val != e2.base_val || e1.exponent_val <= 0 || e2.exponent_val <= 0 || e1.exponent_val == e2.exponent_val || e1.exp_expression_val == 0) {
         return {};
     }
     if (e1.exponent_val > e2.exponent_val) {
-        const auto tmp {e1};
+        const auto tmp = e1;
         e1 = e2;
         e2 = tmp;
     }
     const auto base_val {e1.base_val};
-    if (const auto diff_val {e2.exponent_val - e1.exponent_val}; pow(base_val, e2.exponent_val) - pow(base_val, e1.exponent_val) != pow(base_val, diff_val)) {
+    if (const auto diff_val {e2.exponent_val - e1.exponent_val}; e2.exp_expression_val % e1.exp_expression_val != 0 || e2.exp_expression_val / e1.exp_expression_val != pow(base_val, diff_val)) {
         const auto diff {util->term(diff_val)};
         const z3::expr premise{e1.base == e2.base && e2.exponent - e1.exponent == diff && e1.exponent >= 0};
         const z3::expr conclusion{e2.exp_expression == e1.exp_expression * z3::pw(e1.base, diff)};
@@ -480,50 +495,45 @@ void Swine::prime_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas) {
     const auto mk_lem = [&](const auto &ee, const auto &dt) {
         return (z3::mod(ee.base, dt) == 0 && ee.exponent != 0) == (z3::mod(ee.exp_expression, dt) == 0);
     };
+    int inc[8]{4, 2, 4, 2, 4, 6, 2, 6};
     for (const auto& f: frames) {
         for (auto e: f.exps) {
-            const auto ee {evaluate_exponential(e)};
-            if (ee.exp_expression_val < 2 || ee.base_val < 2) {
+            const auto ee = evaluate_exponential(e);
+            auto min = std::min(ee.base_val, ee.exp_expression_val);
+            auto max = std::max(ee.base_val, ee.exp_expression_val);
+            if (min <= 0 || max % min == 0) {
                 continue;
             }
-            auto base_val {ee.base_val};
-            auto val {ee.exp_expression_val};
-            while (val % base_val == 0) {
-                val /= base_val;
-            }
-            auto done {false};
+            const auto gcd = boost::multiprecision::gcd(max, min);
+            min = min / gcd;
+            max = max / gcd;
+            auto done = false;
             const auto process_divisor = [&](const auto &d) {
-                if (val % d == 0 && base_val % d == 0) {
-                    while (val % d == 0) {
-                        val /= d;
-                    }
-                    while (base_val % d == 0) {
-                        base_val /= d;
-                    }
-                } else {
-                    const auto dt {util->term(d)};
+                if (min % d == 0 || max % d == 0) {
+                    const auto dt = util->term(d);
                     lemmas.emplace_back(mk_lem(ee, dt), LemmaKind::Prime);
-                    return true;
+                    done = true;
                 }
-                return false;
+                return done;
             };
-            for (const auto d: std::vector{2,3,5}) {
-                process_divisor(d);
+            for (const auto d: std::vector{2, 3, 5}) {
+                if (process_divisor(d)) {
+                    break;
+                }
             }
-            if (done) {
-                continue;
-            }
-            cpp_int d{7};
-            auto i{0};
-            while (d * d <= val) {
-                int inc[8] {4, 2, 4, 2, 4, 6, 2, 6};
-                process_divisor(d);
+            cpp_int d = 7;
+            auto i = 0;
+            while (!done && d * d <= max) {
+                if (process_divisor(d)) {
+                    break;
+                }
                 d = d + inc[i];
                 i = (i + 1) % 8;
             }
             if (!done) {
-                const auto dt {util->term(base_val)};
-                lemmas.emplace_back(mk_lem(ee, dt), LemmaKind::Prime);
+                // both min and max are prime
+                process_divisor(min);
+                assert(done);
             }
         }
     }
@@ -640,9 +650,10 @@ z3::check_result Swine::check(z3::expr_vector assumptions) {
                 }
                 std::vector<std::pair<z3::expr, LemmaKind>> lemmas;
                 // check if the model can be lifted
+                TermEvaluator evaluator{*util};
                 for (const auto &f: frames) {
-                    for (const auto &e: f.exps) {
-                        if (const auto ee {evaluate_exponential(e)}; ee.exp_expression_val != ee.expected_val) {
+                    for (const auto &e: f.preprocessed_assertions | std::views::values) {
+                        if (!evaluator.evaluate(e, model).is_true()) {
                             sat = false;
                             break;
                         }
@@ -652,9 +663,6 @@ z3::check_result Swine::check(z3::expr_vector assumptions) {
                     }
                 }
                 if (sat) {
-                    if (config.validate_sat) {
-                        verify();
-                    }
                     if (config.get_lemmas) {
                         std::cout << "===== lemmas =====" << std::endl;
                         for (const auto &k: lemma_kind::values) {

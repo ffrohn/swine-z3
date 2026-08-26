@@ -81,7 +81,7 @@ class Swine {
     std::unique_ptr<Preprocessor> preproc;
     std::unique_ptr<ExpFinder> exp_finder;
     bool sat_mode {true};
-    long long bound {2};
+    long long bound {1};
     z3::model model;
     std::string reason_unknown {};
 

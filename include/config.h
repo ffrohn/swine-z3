@@ -9,14 +9,11 @@ namespace swine {
 
 class Config {
 
-private:
-
     std::unordered_set<LemmaKind> active_lemma_kinds {lemma_kind::values};
     std::unordered_set<PreprocKind> active_preprocessings{preproc_kind::values};
 
 public:
 
-    bool validate_sat {false};
     std::optional<unsigned int> validate_unsat {};
     bool log {false};
     bool statistics {false};
@@ -25,13 +22,13 @@ public:
     unsigned rlimit {0};
     bool toggle_mode {true};
 
-    void deactivate(const LemmaKind k);
+    void deactivate(LemmaKind k);
 
-    bool is_active(const LemmaKind k) const;
+    bool is_active(LemmaKind k) const;
 
-    void deactivate(const PreprocKind k);
+    void deactivate(PreprocKind k);
 
-    bool is_active(const PreprocKind k) const;
+    bool is_active(PreprocKind k) const;
 
     void set_rlimit(unsigned rlimit);
 

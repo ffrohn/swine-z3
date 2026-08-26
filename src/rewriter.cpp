@@ -28,10 +28,6 @@ z3::expr Rewriter::rewrite(const z3::expr &t) {
                 res = base;
             } else if (util.is_value(exp)) {
                 res = rewrite(z3::pw(base, exp));
-            } else if (util.is_abstract_exp(base)) {
-                const auto inner_base {base.arg(0)};
-                const auto inner_exp {base.arg(1)};
-                res = util.make_exp(inner_base, exp * inner_exp);
             }
         } else if (t.decl().decl_kind() == Z3_OP_MUL) {
             std::unordered_map<unsigned, z3::expr_vector> exp_map;
