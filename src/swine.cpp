@@ -116,16 +116,6 @@ void Swine::symmetry_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas)
                 if (ee.base_val < 0) {
                     base_symmetry_lemmas(e, sym_lemmas);
                 }
-                if (ee.base_val == -1 && ee.exponent_val < 0) {
-                    exp_symmetry_lemmas(e, sym_lemmas);
-                }
-                if (ee.base_val < 0 && ee.exponent_val < 0) {
-                    const auto neg {util->make_exp(-ee.base, -ee.exponent)};
-                    base_symmetry_lemmas(neg, sym_lemmas);
-                    if (ee.base_val == -1) {
-                        exp_symmetry_lemmas(neg, sym_lemmas);
-                    }
-                }
             }
         }
     }

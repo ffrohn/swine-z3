@@ -13,10 +13,8 @@ z3::expr_vector ExpGroup::all() const {
     const auto base {t.arg(0)};
     const auto exp {t.arg(1)};
     res.push_back(t);
-    res.push_back(util.make_exp(base, -exp));
     if (neg_base || !ground_base) {
         res.push_back(util.make_exp(-base, exp));
-        res.push_back(util.make_exp(-base, -exp));
     }
     return res;
 }
@@ -29,7 +27,6 @@ z3::expr_vector ExpGroup::maybe_non_neg_base() const {
     const auto base {t.arg(0)};
     const auto exp {t.arg(1)};
     res.push_back(util.make_exp(-base, exp));
-    res.push_back(util.make_exp(-base, -exp));
     return res;
 }
 
