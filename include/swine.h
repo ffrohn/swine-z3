@@ -28,6 +28,7 @@ class Swine {
         std::unordered_map<unsigned, LemmaKind> lemma_kinds;
         std::unordered_map<unsigned, z3::expr> lemmas;
         std::unordered_map<unsigned, z3::expr_vector> bounding_lemmas;
+        std::unordered_map<unsigned, z3::expr_vector> negativity_lemmas;
         std::optional<std::string> assert_failed {};
 
         explicit Frame(z3::context &ctx);
@@ -51,7 +52,7 @@ class Swine {
 
     struct Statistics {
         unsigned int iterations {0};
-        unsigned int symmetry_lemmas {0};
+        unsigned int negativity_lemmas {0};
         unsigned int bounding_lemmas {0};
         unsigned int prime_lemmas {0};
         unsigned int interpolation_lemmas {0};
@@ -88,10 +89,8 @@ class Swine {
     friend std::ostream& operator<<(std::ostream &s, const Swine &swine);
 
     z3::check_result check(z3::expr_vector assumptions);
-    void base_symmetry_lemmas(const z3::expr &e, z3::expr_vector &lemmas) const;
-    void exp_symmetry_lemmas(const z3::expr &e, z3::expr_vector &lemmas) const;
-    void symmetry_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas) const;
-    void compute_bounding_lemmas(const ExpGroup &g);
+    void negativity_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas) const;
+    void pre_compute_lemmas(const ExpGroup &g);
     void bounding_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas) const;
     EvaluatedExponential evaluate_exponential(const z3::expr &exp_expression) const;
     Interpolant interpolate(const z3::expr &t, unsigned pos, const boost::multiprecision::cpp_int& x1, const boost::multiprecision::cpp_int& x2) const;

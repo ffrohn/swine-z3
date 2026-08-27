@@ -1,29 +1,29 @@
 #pragma once
 
 #include <string>
-#include <optional>
 #include <unordered_set>
 
 namespace swine {
 
 enum class LemmaKind {
-    Symmetry, Bounding, Interpolation, Monotonicity, Induction, Prime
+    Negativity, Bounding, Interpolation, Monotonicity, Induction, Prime
 };
 
 
 namespace lemma_kind {
+    static const std::unordered_set values{
+        LemmaKind::Negativity,
+        LemmaKind::Bounding,
+        LemmaKind::Interpolation,
+        LemmaKind::Monotonicity,
+        LemmaKind::Induction,
+        LemmaKind::Prime
+    };
 
-static const std::unordered_set<LemmaKind> values {LemmaKind::Symmetry,
-                                                  LemmaKind::Bounding,
-                                                  LemmaKind::Interpolation,
-                                                  LemmaKind::Monotonicity,
-                                                  LemmaKind::Induction,
-                                                  LemmaKind::Prime};
-
-std::string str(const LemmaKind k);
+    std::string str(LemmaKind k);
 
 }
 
-std::ostream& operator<<(std::ostream &s, const LemmaKind kind);
+std::ostream& operator<<(std::ostream &s, LemmaKind kind);
 
 }

@@ -7,7 +7,7 @@ namespace swine {
 
 std::string lemma_kind::str(const LemmaKind k) {
     switch (k) {
-    case LemmaKind::Symmetry: return "symmetry";
+    case LemmaKind::Negativity: return "negativity";
     case LemmaKind::Bounding: return "bounding";
     case LemmaKind::Interpolation: return "interpolation";
     case LemmaKind::Monotonicity: return "monotonicity";

@@ -7,7 +7,6 @@
 #include "util.h"
 
 #include <cassert>
-#include <limits>
 #include <ranges>
 #include <utility>
 
@@ -32,7 +31,7 @@ std::ostream& operator<<(std::ostream &s, const Swine::EvaluatedExponential &exp
 std::ostream& operator<<(std::ostream &s, const Swine::Statistics &stats) {
     s << "assertions           : " << stats.num_assertions << std::endl;
     s << "iterations           : " << stats.iterations << std::endl;
-    s << "symmetry lemmas      : " << stats.symmetry_lemmas << std::endl;
+    s << "negativity lemmas    : " << stats.negativity_lemmas << std::endl;
     s << "bounding lemmas      : " << stats.bounding_lemmas << std::endl;
     s << "monotonicity lemmas  : " << stats.monotonicity_lemmas << std::endl;
     s << "induction lemmas     : " << stats.induction_lemmas << std::endl;
@@ -86,7 +85,7 @@ void Swine::add_lemma(const z3::expr &t, const LemmaKind kind) {
     switch (kind) {
     case LemmaKind::Interpolation: ++stats.interpolation_lemmas;
         break;
-    case LemmaKind::Symmetry: ++stats.symmetry_lemmas;
+    case LemmaKind::Negativity: ++stats.negativity_lemmas;
         break;
     case LemmaKind::Prime: ++stats.prime_lemmas;
         break;
@@ -104,87 +103,72 @@ z3::expr Swine::get_value(const z3::expr &exp) const {
     return model.eval(exp, true);
 }
 
-void Swine::symmetry_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas) const {
-    if (!config.is_active(LemmaKind::Symmetry)) {
+void Swine::negativity_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas) const {
+    if (!config.is_active(LemmaKind::Negativity)) {
         return;
     }
-    z3::expr_vector sym_lemmas{ctx};
+    std::unordered_set<unsigned> seen;
     for (const auto &f: frames) {
-        for (const auto &e: f.exps) {
-            const auto ee {evaluate_exponential(e)};
-            if (ee.exp_expression_val != ee.expected_val) {
-                if (ee.base_val < 0) {
-                    base_symmetry_lemmas(e, sym_lemmas);
+        for (const auto &g: f.exp_groups) {
+            if (seen.contains(g->orig().id())) {
+                continue;
+            }
+            seen.emplace(g->orig().id());
+            for (const auto &e: g->all()) {
+                if (const auto ee {evaluate_exponential(e)}; ee.exp_expression_val != ee.expected_val) {
+                    for (const auto &l: f.negativity_lemmas.at(e.id())) {
+                        lemmas.emplace_back(l, LemmaKind::Negativity);
+                    }
                 }
             }
         }
     }
-    for (const auto &l: sym_lemmas) {
-        lemmas.emplace_back(l, LemmaKind::Symmetry);
-    }
 }
 
-void Swine::base_symmetry_lemmas(const z3::expr &e, z3::expr_vector &lemmas) const {
-    if (!config.is_active(LemmaKind::Symmetry)) {
-        return;
-    }
-    const auto base {e.arg(0)};
-    const auto exp {e.arg(1)};
-    if (!util->is_value(base) || util->value(base) < 0) {
-        const auto conclusion_even {e == util->make_exp(-base, exp)};
-        const auto conclusion_odd {e == -util->make_exp(-base, exp)};
-        const auto premise_even {z3::mod(exp, 2) == 0};
-        const auto premise_odd {z3::mod(exp, 2) == 1};
-        lemmas.push_back(z3::implies(premise_even, conclusion_even));
-        lemmas.push_back(z3::implies(premise_odd, conclusion_odd));
-    }
-}
-
-void Swine::exp_symmetry_lemmas(const z3::expr &e, z3::expr_vector &lemmas) const {
-    if (!config.is_active(LemmaKind::Symmetry)) {
-        return;
-    }
-    const auto base {e.arg(0)};
-    const auto exp {e.arg(1)};
-    const auto lemma {z3::implies(base == -1, e == util->make_exp(base, -exp))};
-    lemmas.push_back(lemma);
-}
-
-void Swine::compute_bounding_lemmas(const ExpGroup &g) {
+void Swine::pre_compute_lemmas(const ExpGroup &g) {
     if (!config.is_active(LemmaKind::Bounding)) {
         return;
     }
     for (const auto &e: g.all()) {
-        auto [it, inserted] {frames.back().bounding_lemmas.emplace(e.id(), z3::expr_vector(ctx))};
+        auto [bit, inserted] = frames.back().bounding_lemmas.emplace(e.id(), z3::expr_vector(ctx));
         if (!inserted) {
             return;
         }
-        auto &set {it->second};
+        auto &bset = bit->second;
+        auto &nset = frames.back().negativity_lemmas.emplace(e.id(), z3::expr_vector(ctx)).first->second;
         const auto base {e.arg(0)};
         const auto exp {e.arg(1)};
         // exp = 0 ==> base^exp = 1
-        set.push_back(z3::implies(exp == 0, e == 1));
+        bset.push_back(z3::implies(exp == 0, e == 1));
         // exp = 1 ==> base^exp = base
-        set.push_back(z3::implies(exp == 1, e == base));
+        bset.push_back(z3::implies(exp == 1, e == base));
         if (!util->is_value(base) || util->value(base) < -1) {
             // exp < 0 && base < -1 ==> base^exp = 0
-            set.push_back(z3::implies(exp < 0 && base < -1, e == 0));
+            nset.push_back(z3::implies(exp < 0 && base < -1, e == 0));
         }
         if (!util->is_value(base) || util->value(base) == 0) {
             // base = 0 && exp != 0 ==> base^exp = 0
-            set.push_back(z3::implies(base == 0 && exp != 0, e == 0));
+            bset.push_back(z3::implies(base == 0 && exp != 0, e == 0));
         }
         if (!util->is_value(base) || util->value(base) == 1) {
             // base = 1 ==> base^exp = 1
-            set.push_back(z3::implies(base == 1, e == 1));
+            bset.push_back(z3::implies(base == 1, e == 1));
         }
         if (!util->is_value(base) || util->value(base) > 1) {
             // exp < 0 && base > 1 ==> base^exp = 0
-            set.push_back(z3::implies(exp < 0 && base > 1, e == 0));
+            nset.push_back(z3::implies(exp < 0 && base > 1, e == 0));
             // exp + base > 4 && base > 1 && exp > 1 ==> base^exp > base * exp + 1
-            set.push_back(z3::implies(
+            bset.push_back(z3::implies(
                 base + exp > 4 && base > 1 && exp > 1,
                 e > base * exp + 1));
+        }
+        if (!util->is_value(base) || util->value(base) < 0) {
+            const auto conclusion_even {e == util->make_exp(-base, exp)};
+            const auto conclusion_odd {e == -util->make_exp(-base, exp)};
+            const auto premise_even {z3::mod(exp, 2) == 0};
+            const auto premise_odd {z3::mod(exp, 2) == 1};
+            nset.push_back(z3::implies(premise_even, conclusion_even));
+            nset.push_back(z3::implies(premise_odd, conclusion_odd));
         }
     }
 }
@@ -227,7 +211,7 @@ void Swine::add(const z3::expr &t) {
                     frames.back().exps.push_back(g.orig());
                     frames.back().exp_groups.emplace_back(std::make_shared<ExpGroup>(g));
                     stats.non_constant_base |= !g.has_ground_base();
-                    compute_bounding_lemmas(g);
+                    pre_compute_lemmas(g);
                 }
             }
         } catch (const ExpInQuantifierException&) {
@@ -667,7 +651,7 @@ z3::check_result Swine::check(z3::expr_vector assumptions) {
                     }
                     break;
                 }
-                symmetry_lemmas(lemmas);
+                negativity_lemmas(lemmas);
                 lemmas = preprocess_lemmas(lemmas);
                 if (lemmas.empty()) {
                     bounding_lemmas(lemmas);
@@ -684,7 +668,7 @@ z3::check_result Swine::check(z3::expr_vector assumptions) {
                     lemmas = preprocess_lemmas(lemmas);
                 }
                 if (lemmas.empty()) {
-                    if (config.is_active(LemmaKind::Interpolation) && config.is_active(LemmaKind::Bounding) && config.is_active(LemmaKind::Symmetry)) {
+                    if (config.is_active(LemmaKind::Interpolation) && config.is_active(LemmaKind::Bounding) && config.is_active(LemmaKind::Negativity)) {
                         throw std::logic_error("refinement failed, but interpolation, bounding, and symmetry lemmas are enabled");
                     }
                     reason_unknown = "failed-refinement";
