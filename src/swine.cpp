@@ -126,7 +126,7 @@ void Swine::negativity_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemma
 }
 
 void Swine::pre_compute_lemmas(const ExpGroup &g) {
-    if (!config.is_active(LemmaKind::Bounding)) {
+    if (!config.is_active(LemmaKind::Bounding) && !config.is_active(LemmaKind::Negativity)) {
         return;
     }
     for (const auto &e: g.all()) {
