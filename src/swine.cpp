@@ -460,7 +460,7 @@ void Swine::prime_lemmas(std::vector<std::pair<z3::expr, LemmaKind>> &lemmas) {
         return;
     }
     const auto mk_lem = [&](const auto &ee, const auto &dt) {
-        return (z3::mod(ee.base, dt) == 0 && ee.exponent != 0) == (z3::mod(ee.exp_expression, dt) == 0);
+        return z3::implies(ee.exponent > 0, (z3::mod(ee.base, dt) == 0) == (z3::mod(ee.exp_expression, dt) == 0));
     };
     int inc[8]{4, 2, 4, 2, 4, 6, 2, 6};
     for (const auto& f: frames) {
