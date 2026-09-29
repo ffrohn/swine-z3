@@ -6,7 +6,7 @@
 
 (assert (>= x 0))
 (assert (>= y 0))
-(assert (> (exp 2 x) (exp 3 y)))
+(assert (> (** 2 x) (** 3 y)))
 
 (check-sat)
 (get-model)

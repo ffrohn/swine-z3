@@ -9,7 +9,7 @@
 (assert (< 1 a b))
 (assert (> x 0))
 ;(assert (> y 0))
-(assert (< (exp a x) (exp b x)))
+(assert (< (** a x) (** b x)))
 
 (check-sat)
 (get-model)

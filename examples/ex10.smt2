@@ -5,6 +5,6 @@
 
 (assert (> (* x x) 4))
 (assert (> (* y y) 4))
-(assert (= (exp (exp x y) y) (exp x (exp y y))))
+(assert (= (** (** x y) y) (** x (** y y))))
 
 (check-sat)

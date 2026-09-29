@@ -12,8 +12,8 @@
 (assert (> n 0))
 (assert (distinct a 0))
 (assert (distinct
-  (* (exp a n) x0)
-  (* a (* (exp a (- n 1)) x0))
+  (* (** a n) x0)
+  (* a (* (** a (- n 1)) x0))
 ))
 
 (check-sat)

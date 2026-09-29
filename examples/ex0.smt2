@@ -5,7 +5,7 @@
 (declare-fun y () Int)
 
 (assert (>= y 0))
-(assert (= x (exp 2 y)))
+(assert (= x (** 2 y)))
 
 (check-sat)
 (get-model)

@@ -4,7 +4,7 @@
 (declare-fun x () Int)
 (declare-fun y () Int)
 
-(assert (= x (exp 2 y)))
+(assert (= x (** 2 y)))
 
 (push)
 

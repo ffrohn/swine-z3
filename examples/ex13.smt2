@@ -4,6 +4,6 @@
 (declare-fun y () Int)
 
 (assert (or (> (* x y) 8) (< (* x y) (- 8))))
-(assert (= (exp (exp x y) y) (exp x (exp y y))))
+(assert (= (** (** x y) y) (** x (** y y))))
 
 (check-sat)

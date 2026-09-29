@@ -5,6 +5,6 @@
 
 (assert (> (ite (>= x 0) x (- x)) 2))
 (assert (> (ite (>= y 0) y (- y)) 2))
-(assert (= (exp (exp x y) y) (exp x (exp y y))))
+(assert (= (** (** x y) y) (** x (** y y))))
 
 (check-sat)

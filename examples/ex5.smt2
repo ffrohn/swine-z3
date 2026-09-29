@@ -8,8 +8,8 @@
 
 (assert (>= x 0))
 (assert (>= y 0))
-(assert (= e2 (exp 2 x)))
-(assert (= e3 (exp 3 y)))
+(assert (= e2 (** 2 x)))
+(assert (= e3 (** 3 y)))
 (assert (> e2 e3))
 
 (check-sat)
