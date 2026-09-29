@@ -10,7 +10,7 @@ Util::Util(z3::context &ctx, const Config &config):
     z3::sort_vector domain {ctx};
     domain.push_back(ctx.int_sort());
     domain.push_back(ctx.int_sort());
-    exp = std::make_unique<z3::func_decl>(ctx.function("exp", domain, ctx.int_sort()));
+    exp = std::make_unique<z3::func_decl>(ctx.function("**", domain, ctx.int_sort()));
 }
 
 z3::expr ExponentOverflow::get_t() const {
